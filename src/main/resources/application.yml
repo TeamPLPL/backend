@@ -1,21 +1,25 @@
-# ?? ?? ??
+# 포트 번호 8080
 server:
   port: 8080
 
-# database ?? ??
+# database 설정
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/board?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: babyshark
+    username: root
     password: mysql
   thymeleaf:
     cache: false
 
-  # spring data jpa ??
+  # spring data jpa 설정
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     open-in-view: false
     show-sql: true
     hibernate:
       ddl-auto: update
+
+logging:
+  level:
+    org.springframework.security: DEBUG
