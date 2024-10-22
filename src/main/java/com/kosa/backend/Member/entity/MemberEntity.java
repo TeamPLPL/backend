@@ -1,4 +1,4 @@
-package com.example.springsecurity.entity;
+package com.kosa.backend.Member.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -15,8 +15,8 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name="user_table")
-public class User implements UserDetails { // UserDetails를 상속받아 인증 객체로 사용한다.
+@Table(name="Member")
+public class MemberEntity implements UserDetails { // UserDetails를 상속받아 인증 객체로 사용한다.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id", updatable=false)
@@ -28,10 +28,14 @@ public class User implements UserDetails { // UserDetails를 상속받아 인증
     @Column(name="password")
     private String password;
 
+    @Column(name="authority")
+    private String authority;
+
     @Builder
-    public User(String email, String password, String auth) {
+    public MemberEntity(String email, String password, String authority) {
         this.email = email;
         this.password = password;
+        this.authority = authority;
     }
 
     @Override // 권한 반환
