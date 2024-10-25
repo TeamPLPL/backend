@@ -2,8 +2,12 @@ package com.kosa.backend.Member.controller;
 
 import com.kosa.backend.Member.dto.MemberDTO;
 import com.kosa.backend.Member.service.MemberService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +31,4 @@ public class MemberApiController {
     public ResponseEntity test() {
         return ResponseEntity.ok().body("Hello World");
     }
-
-
-
 }
