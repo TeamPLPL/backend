@@ -186,3 +186,6 @@ gradle-app.setting
 **/build/
 
 # End of https://www.toptal.com/developers/gitignore/api/java,gradle,macos,vscode,intellij
+
+# application.yml
+application.yml
