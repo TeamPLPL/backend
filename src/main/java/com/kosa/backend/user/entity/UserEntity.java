@@ -1,5 +1,6 @@
-package com.kosa.backend.Member.entity;
+package com.kosa.backend.user.entity;
 
+import com.kosa.backend.common.entity.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -9,6 +10,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -16,7 +19,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name="Member")
-public class MemberEntity implements UserDetails { // UserDetails를 상속받아 인증 객체로 사용한다.
+public class UserEntity extends AuditableEntity implements UserDetails { // UserDetails를 상속받아 인증 객체로 사용한다.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id", updatable=false)
@@ -25,14 +28,33 @@ public class MemberEntity implements UserDetails { // UserDetails를 상속받�
     @Column(name="email", nullable=false, unique=true)
     private String email;
 
+    @Column(nullable = false)
+    private String userName;
+
+    @Column(nullable = false)
+    private String userNick;
+
     @Column(name="password")
     private String password;
+
+    private String userImg;
+
+    @Column(nullable = false)
+    private LocalDateTime joinDate;
+
+    @Column(nullable = false)
+    private boolean isQuit;
+
+    @Column(nullable = false)
+    private int complaintCount;
+
+    private String provider;
 
     @Column(name="authority")
     private String authority;
 
     @Builder
-    public MemberEntity(String email, String password, String authority) {
+    public UserEntity(String email, String password, String authority) {
         this.email = email;
         this.password = password;
         this.authority = authority;

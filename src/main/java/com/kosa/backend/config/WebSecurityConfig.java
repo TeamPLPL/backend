@@ -1,6 +1,6 @@
-package com.kosa.backend.Member.config;
+package com.kosa.backend.config;
 
-import com.kosa.backend.Member.service.MemberDetailService;
+import com.kosa.backend.user.service.UserDetailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +23,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity      // EnableWebSecurity : Spring Security 사용(무조건 써야함)
 @RequiredArgsConstructor
 public class WebSecurityConfig {
-    private final MemberDetailService userDetailService;
+    private final UserDetailService userDetailService;
 
     /*
            스프링 시큐리티의 모든 기능을 사용하지 않게 설정하는 코드
@@ -104,7 +104,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http, BCryptPasswordEncoder bCryptPasswordEncoder, MemberDetailService userDetailService) throws Exception {
+    public AuthenticationManager authenticationManager(HttpSecurity http, BCryptPasswordEncoder bCryptPasswordEncoder, UserDetailService userDetailService) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)
                 .userDetailsService(userDetailService)
                 .passwordEncoder(bCryptPasswordEncoder)

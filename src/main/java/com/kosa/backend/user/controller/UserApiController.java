@@ -1,13 +1,9 @@
-package com.kosa.backend.Member.controller;
+package com.kosa.backend.user.controller;
 
-import com.kosa.backend.Member.dto.MemberDTO;
-import com.kosa.backend.Member.service.MemberService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.kosa.backend.user.dto.UserDTO;
+import com.kosa.backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,14 +11,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RequiredArgsConstructor
 @Controller
-public class MemberApiController {
+public class UserApiController {
 
-    private final MemberService userService;
+    private final UserService userService;
 
     // 회원가입
     @PostMapping("/api/signup")
-    public ResponseEntity signup(@RequestBody MemberDTO memberDTO) {
-        Long num = userService.save(memberDTO);
+    public ResponseEntity signup(@RequestBody UserDTO userDTO) {
+        Long num = userService.save(userDTO);
         return ResponseEntity.ok()
                 .body(num);
     }

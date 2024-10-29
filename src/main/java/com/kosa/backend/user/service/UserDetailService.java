@@ -1,7 +1,7 @@
-package com.kosa.backend.Member.service;
+package com.kosa.backend.user.service;
 
-import com.kosa.backend.Member.entity.MemberEntity;
-import com.kosa.backend.Member.repository.UserRepository;
+import com.kosa.backend.user.entity.UserEntity;
+import com.kosa.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
-public class MemberDetailService implements UserDetailsService {
+public class UserDetailService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public MemberEntity loadUserByUsername(String email) {
+    public UserEntity loadUserByUsername(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
