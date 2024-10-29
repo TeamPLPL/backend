@@ -1,8 +1,8 @@
 package com.kosa.backend.funding.project.entity;
 
-import com.kosa.backend.common.entity.AuditableEntity;
+import com.kosa.backend.common.entity.Auditable;
 import com.kosa.backend.funding.project.entity.enums.MakerType;
-import com.kosa.backend.user.entity.MakerEntity;
+import com.kosa.backend.user.entity.Maker;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -15,7 +15,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "FUNDING")
-public class FundingEntity extends AuditableEntity {
+public class Funding extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -64,23 +64,20 @@ public class FundingEntity extends AuditableEntity {
 
     @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "sub_category_id", nullable = false)
-    private SubCategoryEntity subCategory;
+    private SubCategory subCategory;
 
     @ManyToOne
     @JoinColumn(name = "maker_id", nullable = false)
-    private MakerEntity maker;
+    private Maker maker;
 
     @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "business_maker_id", nullable = true)
-    private BusinessMakerEntity businessMaker;
+    private BusinessMaker businessMaker;
 
     @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "personal_maker_id", nullable = true)
-    private PersonalMakerEntity personalMaker;
+    private PersonalMaker personalMaker;
 
-    @OneToMany(mappedBy = "reward", cascade = CascadeType.ALL)
-    List<RewardEntity> rewards;
-
-    @OneToMany(mappedBy = "reward_info", cascade = CascadeType.ALL)
-    List<RewardInfoEntity> rewardInfos;
+    @OneToMany(mappedBy = "funding", cascade = CascadeType.ALL)
+    List<Reward> rewards;
 }

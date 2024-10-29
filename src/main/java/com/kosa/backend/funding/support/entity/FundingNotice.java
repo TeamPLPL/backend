@@ -1,7 +1,7 @@
 package com.kosa.backend.funding.support.entity;
 
-import com.kosa.backend.common.entity.AuditableEntity;
-import com.kosa.backend.funding.project.entity.FundingEntity;
+import com.kosa.backend.common.entity.Auditable;
+import com.kosa.backend.funding.project.entity.Funding;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "FUNDING_NOTICE")
-public class FundingNoticeEntity extends AuditableEntity {
+public class FundingNotice extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -32,5 +32,5 @@ public class FundingNoticeEntity extends AuditableEntity {
 
     @ManyToOne
     @JoinColumn(name = "funding_id", nullable = false)
-    private FundingEntity funding;
+    private Funding funding;
 }

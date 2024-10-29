@@ -1,40 +1,45 @@
 package com.kosa.backend.funding.project.entity;
 
-import com.kosa.backend.common.entity.AuditableEntity;
+import com.kosa.backend.common.entity.Auditable;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "REWARD")
-public class RewardEntity extends AuditableEntity {
+@Table(name = "REWARD_INFO")
+public class RewardInfo extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column(nullable = false)
-    private String rewardName;
+    private String modelName;
 
     @Column(nullable = false)
-    private int price;
+    private String productMaterial;
 
     @Column(nullable = false)
-    private String explanation;
+    private String color;
 
     @Column(nullable = false)
-    private int deliveryFee;
+    private String field;
 
     @Column(nullable = false)
-    private LocalDateTime deliveryStartDate;
+    private String manufacturer;
 
-    private Integer quantityLimit;
+    @Column(nullable = false)
+    private String manufacturingCountry;
+
+    @Column(nullable = false)
+    private String manufactureDate;
+
+    @Column(nullable = false)
+    private String refundsPolicies;
 
     @ManyToOne
     @JoinColumn(name = "funding_id", nullable = false)
-    private FundingEntity funding;
+    private Funding funding;
 }

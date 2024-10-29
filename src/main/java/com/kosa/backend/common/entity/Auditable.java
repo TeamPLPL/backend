@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @Getter
-public class AuditableEntity {
+public class Auditable {
     /*
         TemporalType.Date : 년-월-일
         TemporalType.Date : 시-분-초

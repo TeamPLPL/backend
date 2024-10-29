@@ -1,9 +1,9 @@
 package com.kosa.backend.funding.support.entity;
 
-import com.kosa.backend.common.entity.AuditableEntity;
-import com.kosa.backend.funding.project.entity.FundingEntity;
+import com.kosa.backend.common.entity.Auditable;
+import com.kosa.backend.funding.project.entity.Funding;
 import com.kosa.backend.funding.support.entity.enums.ComplaintCategory;
-import com.kosa.backend.user.entity.UserEntity;
+import com.kosa.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "COMPLAINT")
-public class ComplaintEntity extends AuditableEntity {
+public class Complaint extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -35,17 +35,17 @@ public class ComplaintEntity extends AuditableEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "complaint_user_id")
-    private UserEntity complaintUser;
+    private User complaintUser;
 
     @ManyToOne
     @JoinColumn(name = "funding_id")
-    private FundingEntity funding;
+    private Funding funding;
 
     @ManyToOne
     @JoinColumn(name = "board_id")
-    private SupporterBoardEntity board;
+    private SupporterBoard board;
 }

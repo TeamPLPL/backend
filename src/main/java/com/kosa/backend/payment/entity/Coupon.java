@@ -1,14 +1,14 @@
 package com.kosa.backend.payment.entity;
 
-import com.kosa.backend.common.entity.AuditableEntity;
-import com.kosa.backend.user.entity.UserEntity;
+import com.kosa.backend.common.entity.Auditable;
+import com.kosa.backend.user.entity.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "COUPON")
-public class CouponEntity extends AuditableEntity {
+public class Coupon extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;  // Assuming coupon_id is a String type
@@ -24,5 +24,5 @@ public class CouponEntity extends AuditableEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    private User user;
 }

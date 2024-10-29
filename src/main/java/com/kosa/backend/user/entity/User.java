@@ -1,6 +1,6 @@
 package com.kosa.backend.user.entity;
 
-import com.kosa.backend.common.entity.AuditableEntity;
+import com.kosa.backend.common.entity.Auditable;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,7 +10,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -18,8 +17,8 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name="Member")
-public class UserEntity extends AuditableEntity implements UserDetails { // UserDetails를 상속받아 인증 객체로 사용한다.
+@Table(name="User")
+public class User extends Auditable implements UserDetails { // UserDetails를 상속받아 인증 객체로 사용한다.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id", updatable=false)
@@ -54,7 +53,7 @@ public class UserEntity extends AuditableEntity implements UserDetails { // User
     private String authority;
 
     @Builder
-    public UserEntity(String email, String password, String authority) {
+    public User(String email, String password, String authority) {
         this.email = email;
         this.password = password;
         this.authority = authority;

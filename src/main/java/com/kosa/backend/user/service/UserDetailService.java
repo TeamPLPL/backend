@@ -1,6 +1,6 @@
 package com.kosa.backend.user.service;
 
-import com.kosa.backend.user.entity.UserEntity;
+import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,7 +13,7 @@ public class UserDetailService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserEntity loadUserByUsername(String email) {
+    public User loadUserByUsername(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
