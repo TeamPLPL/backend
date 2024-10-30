@@ -18,6 +18,7 @@ public class UserApiController {
     // 회원가입
     @PostMapping("/api/signup")
     public ResponseEntity signup(@RequestBody UserDTO userDTO) {
+        System.out.println("여기 들어옴");
         Long num = userService.save(userDTO);
         return ResponseEntity.ok()
                 .body(num);

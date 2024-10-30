@@ -57,7 +57,7 @@ public class WebSecurityConfig {
                         denyAll() : 접근 경로 모두 허용X
                      */
                     .requestMatchers("/api/login", "/api/signup","/api/user").permitAll()
-                    /*
+                    /*WF
                         requestMathcer(String url).hasRole("ADMIN", "USER") 권한 여러개 등록할 수있음.
                     */
                     .requestMatchers("/api/admind/**").hasRole("ADMIN")
@@ -74,30 +74,30 @@ public class WebSecurityConfig {
             ! 옛날에는 .and() 쓰고서 한 번에 작성해야 했지만 현재는 deprecated로 와르르 작성하지 않음
             아래와 같이 나뉘어 작성되어 독립적으로 동작함.
         */
-        http
-                .formLogin(formLogin -> formLogin
-                /*
-                    loginPage("/login") : custom 로그인 페이지 URL 설정함.
-                     spring security는 자체적으로 로그인 페이지를 제공하지만
-                     loginPage()를 사용해서 사용자가 정의한 페이지로 설정할 수 있다.
-                */
-                .loginPage("/login")
-                .usernameParameter("email")
-                .passwordParameter("password")
-                /*
-                        loginProcessingUrl("/login") : loginForm에 있는 <form action="/login"> url에 연결함.
-                        기본적으로는 위와같이 자동으로 설정되어 있어서 쓰지 않아도 되고
-                        명시적으로 작성해서 custom할 수 있음.
-                        -> form이기 때문에 method="post" 이다.
-                 */
-                .defaultSuccessUrl("/"))
-
-                .logout(logout -> logout
-                        .logoutUrl("/logout")                 // 로그아웃 URL
-                        .logoutSuccessUrl("/")                // 로그아웃 성공 후 리다이렉트
-                        .invalidateHttpSession(true)          // 세션 무효화
-                        .deleteCookies("JSESSIONID")   // 쿠키 삭제
-                );
+//        http
+//                .formLogin(formLogin -> formLogin
+//                /*
+//                    loginPage("/login") : custom 로그인 페이지 URL 설정함.
+//                     spring security는 자체적으로 로그인 페이지를 제공하지만
+//                     loginPage()를 사용해서 사용자가 정의한 페이지로 설정할 수 있다.
+//                */
+//                .loginPage("/login")
+//                .usernameParameter("email")
+//                .passwordParameter("password")
+//                /*
+//                        loginProcessingUrl("/login") : loginForm에 있는 <form action="/login"> url에 연결함.
+//                        기본적으로는 위와같이 자동으로 설정되어 있어서 쓰지 않아도 되고
+//                        명시적으로 작성해서 custom할 수 있음.
+//                        -> form이기 때문에 method="post" 이다.
+//                 */
+//                .defaultSuccessUrl("/"))
+//
+//                .logout(logout -> logout
+//                        .logoutUrl("/logout")                 // 로그아웃 URL
+//                        .logoutSuccessUrl("/")                // 로그아웃 성공 후 리다이렉트
+//                        .invalidateHttpSession(true)          // 세션 무효화
+//                        .deleteCookies("JSESSIONID")   // 쿠키 삭제
+//                );
 
 
         return http.build();

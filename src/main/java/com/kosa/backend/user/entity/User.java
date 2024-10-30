@@ -27,27 +27,27 @@ public class User extends Auditable implements UserDetails { // UserDetailsë¥¼ ì
     @Column(name="email", nullable=false, unique=true)
     private String email;
 
-    @Column(nullable = false)
-    private String userName;
-
-    @Column(nullable = false)
-    private String userNick;
+//    @Column(nullable = false)
+//    private String userName;
+//
+//    @Column(nullable = false)
+//    private String userNick;
 
     @Column(name="password")
     private String password;
 
-    private String userImg;
-
-    @Column(nullable = false)
-    private LocalDateTime joinDate;
-
-    @Column(nullable = false)
-    private boolean isQuit;
-
-    @Column(nullable = false)
-    private int complaintCount;
-
-    private String provider;
+//    private String userImg;
+//
+//    @Column(nullable = false)
+//    private LocalDateTime joinDate;
+//
+//    @Column(nullable = false)
+//    private boolean isQuit;
+//
+//    @Column(nullable = false)
+//    private int complaintCount;
+//
+//    private String provider;
 
     @Column(name="authority")
     private String authority;
