@@ -62,7 +62,8 @@ public class WebSecurityConfig {
                     */
                     .requestMatchers("/api/admind/**").hasRole("ADMIN")
                     // 그 외에는 .anyRequest().authenticated()로 로그인 할 경우에만 접근할 수 있음.
-                    .anyRequest().authenticated()
+//                    .anyRequest().authenticated()
+                    .anyRequest().permitAll() // 개발 중에는 모든 접근 허용
             );
 
         // postman 사용하기 위한 임시 httpBasic
