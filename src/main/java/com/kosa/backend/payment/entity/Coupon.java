@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class Coupon extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;  // Assuming coupon_id is a String type
+    private int id;  // Assuming coupon_id is a String type
 
     @Column(nullable = false)
     private String couponName;
