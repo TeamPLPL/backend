@@ -9,15 +9,16 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
 /*
-       이전 버전 : extends WebSecurityConfigureAdapter 상속받음, anthMatchers("/") 사용
-       이후 버전 : 상속 대신 @Bean등록, requestMatchers("/") 사용
-       스프링 3.1.x 이후 (스프링 6.1.x) : 무조건 람다, 열겨식으로 쓰지 말것. -> .and() 쓰지 말것
+   이전 버전 : extends WebSecurityConfigureAdapter 상속받음, anthMatchers("/") 사용
+   이후 버전 : 상속 대신 @Bean등록, requestMatchers("/") 사용
+   스프링 3.1.x 이후 (스프링 6.1.x) : 무조건 람다, 열겨식으로 쓰지 말것. -> .and() 쓰지 말것
 */
 @Configuration          // Configuration : Spring 설정 에너테이션
 @EnableWebSecurity      // EnableWebSecurity : Spring Security 사용(무조건 써야함)
@@ -57,9 +58,7 @@ public class WebSecurityConfig {
                         denyAll() : 접근 경로 모두 허용X
                      */
                     .requestMatchers("/api/login", "/api/signup","/api/user").permitAll()
-                    /*
-                        requestMathcer(String url).hasRole("ADMIN", "USER") 권한 여러개 등록할 수있음.
-                    */
+                    // requestMathcer(String url).hasRole("ADMIN", "USER") 권한 여러개 등록할 수있음.
                     .requestMatchers("/api/admind/**").hasRole("ADMIN")
                     // 그 외에는 .anyRequest().authenticated()로 로그인 할 경우에만 접근할 수 있음.
 //                    .anyRequest().authenticated()
@@ -70,47 +69,19 @@ public class WebSecurityConfig {
         http
                 .httpBasic(withDefaults());
 
-        /*
-            custom 설정:
-            ! 옛날에는 .and() 쓰고서 한 번에 작성해야 했지만 현재는 deprecated로 와르르 작성하지 않음
-            아래와 같이 나뉘어 작성되어 독립적으로 동작함.
-        */
-        http
-                .formLogin(formLogin -> formLogin
-                /*
-                    loginPage("/login") : custom 로그인 페이지 URL 설정함.
-                     spring security는 자체적으로 로그인 페이지를 제공하지만
-                     loginPage()를 사용해서 사용자가 정의한 페이지로 설정할 수 있다.
-                */
-                .loginPage("/login")
-                .usernameParameter("email")
-                .passwordParameter("password")
-                /*
-                        loginProcessingUrl("/login") : loginForm에 있는 <form action="/login"> url에 연결함.
-                        기본적으로는 위와같이 자동으로 설정되어 있어서 쓰지 않아도 되고
-                        명시적으로 작성해서 custom할 수 있음.
-                        -> form이기 때문에 method="post" 이다.
-                 */
-                .defaultSuccessUrl("/"))
-
-                .logout(logout -> logout
-                        .logoutUrl("/logout")                 // 로그아웃 URL
-                        .logoutSuccessUrl("/")                // 로그아웃 성공 후 리다이렉트
-                        .invalidateHttpSession(true)          // 세션 무효화
-                        .deleteCookies("JSESSIONID")   // 쿠키 삭제
-                );
-
-
         return http.build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http, BCryptPasswordEncoder bCryptPasswordEncoder, UserDetailService userDetailService) throws Exception {
-        return http.getSharedObject(AuthenticationManagerBuilder.class)
-                .userDetailsService(userDetailService)
-                .passwordEncoder(bCryptPasswordEncoder)
-                .and()
-                .build();
+    public AuthenticationManager authenticationManager(HttpSecurity http, BCryptPasswordEncoder bCryptPasswordEncoder, UserDetailsService userDetailsService) throws Exception {
+        AuthenticationManagerBuilder authenticationManagerBuilder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
+
+        authenticationManagerBuilder
+                .userDetailsService(userDetailsService)
+                .passwordEncoder(bCryptPasswordEncoder);
+
+        return authenticationManagerBuilder.build();
     }
 
     /*
