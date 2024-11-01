@@ -16,6 +16,4 @@ public class Maker extends Auditable {
 
     @Column(nullable = false)
     private String userContent;
-
-    // getters and setters
 }

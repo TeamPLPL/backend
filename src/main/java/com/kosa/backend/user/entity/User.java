@@ -1,6 +1,7 @@
 package com.kosa.backend.user.entity;
 
 import com.kosa.backend.common.entity.Auditable;
+import com.kosa.backend.user.entity.enums.Authority;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -36,40 +37,46 @@ public class User extends Auditable implements UserDetails { // UserDetails를 �
     @Column(name="password")
     private String password;
 
-    private String userImg;
-
     @Column(nullable = false)
     private LocalDateTime joinDate;
 
-    @Column(nullable = false)
+    @Column(nullable = false) // 탈퇴 여부
     private boolean isQuit;
 
-    @Column(nullable = false)
+    @Column(nullable = false) // 신고 회수
     private int complaintCount;
 
     private String provider;
 
     @Column(name="authority")
-    private String authority;
+    @Enumerated(EnumType.STRING)
+    private Authority authority;
 
     @Builder
-    public User(String email, String password, String authority) {
+    public User(String email, String password, Authority authority, String userNick
+        ,String userName,LocalDateTime joinDate,boolean isQuit, int complaintCount) {
         this.email = email;
         this.password = password;
+        this.userNick = userNick;
         this.authority = authority;
+        this.userName = userName;
+        this.joinDate = joinDate;
+        this.isQuit = isQuit;
+        this.complaintCount = complaintCount;
     }
 
-    @Override // 권한 반환
+    @Override // 사용자가 가지는 권한에 대한 정보 반환
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("user"));
+        // 권한 관련 로직을 여기서 구현하거나, 필요시 Authority와 연결된 GrantedAuthority 리스트를 반환합니다.
+        return List.of(() -> authority.name());
     }
 
-    @Override // 사용자의 id를 반환(고유한 값)
+    @Override // 인증에 필요한 아이디와 같은 정보, 사용자의 id를 반환(고유한 값)
     public String getUsername() {
         return email;
     }
 
-    @Override // 사용자의 pwd를 반환
+    @Override // 인증을 마무리하기 위한 패스워드 정보, 사용자의 pwd를 반환
     public String getPassword() {
         return password;
     }
