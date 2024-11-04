@@ -9,5 +9,5 @@ public class CouponDTO {
     private String couponName;
     private int discountRate;
     private LocalDateTime issueDate;
-    private Long userId;  // 유저 ID
+    private int userId;  // 유저 ID
 }

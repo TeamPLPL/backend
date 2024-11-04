@@ -14,7 +14,7 @@ public class PaymentDTO {
     private String deliveryAddress;
     private String phoneNum;
     private String receiverName;
-    private Long userId;
+    private int userId;
     private Integer couponId;
     private String cardNumber;
     private String methodType;  // 추가: 카드인지 서드파티 페이인지 구분

@@ -25,7 +25,7 @@ public class CouponController {
 
     // 특정 유저의 쿠폰 조회
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Coupon>> getCouponsByUserId(@PathVariable Long userId) {
+    public ResponseEntity<List<Coupon>> getCouponsByUserId(@PathVariable int userId) {
         List<Coupon> coupons = couponService.getCouponsByUserId(userId);
         return ResponseEntity.ok(coupons);
     }

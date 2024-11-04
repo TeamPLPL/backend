@@ -32,7 +32,7 @@ public class CouponService {
     }
 
     // 특정 유저의 쿠폰 조회
-    public List<Coupon> getCouponsByUserId(Long userId) {
+    public List<Coupon> getCouponsByUserId(int userId) {
         return couponRepository.findByUser_Id(userId);
     }
 
