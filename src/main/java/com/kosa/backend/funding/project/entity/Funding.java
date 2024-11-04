@@ -4,15 +4,15 @@ import com.kosa.backend.common.entity.Auditable;
 import com.kosa.backend.funding.project.entity.enums.MakerType;
 import com.kosa.backend.user.entity.Maker;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "FUNDING")
 public class Funding extends Auditable {
@@ -48,7 +48,7 @@ public class Funding extends Auditable {
     @Column(nullable = false)
     private String repEmail;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String fundingExplanation;
 
     @Column(nullable = false)
