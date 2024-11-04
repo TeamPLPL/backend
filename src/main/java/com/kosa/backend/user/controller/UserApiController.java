@@ -30,7 +30,7 @@ public class UserApiController {
     // 회원가입
     @PostMapping("/api/signup")
     public ResponseEntity signup(@RequestBody UserDTO userDTO) {
-        Long num = userService.save(userDTO);
+        int num = userService.save(userDTO);
         return ResponseEntity.ok()
                 .body(num);
     }

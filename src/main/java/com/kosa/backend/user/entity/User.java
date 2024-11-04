@@ -21,7 +21,7 @@ public class User extends Auditable implements UserDetails { // UserDetailsë¥¼ ì
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id", updatable=false)
-    private Long id;
+    private int id;
 
     @Column(name="email", nullable=false, unique=true)
     private String email;
