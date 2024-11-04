@@ -1,14 +1,12 @@
 package com.kosa.backend.funding.project.controller;
 
+import com.kosa.backend.funding.project.dto.FundingDTO;
 import com.kosa.backend.funding.project.entity.MainCategory;
 import com.kosa.backend.funding.project.entity.SubCategory;
 import com.kosa.backend.funding.project.service.FundingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -28,4 +26,14 @@ public class FundingController {
     public ResponseEntity<List<SubCategory>> getSubCategory(@PathVariable(name="parent-id") Integer parentId) {
         return fundingService.getSubCategoriesById(parentId);
     }
+
+    @PostMapping("/fundinglist/new")
+    public ResponseEntity<List<FundingDTO>> getNewFundingList() {
+        return fundingService.getNewFundingList();
+    }
+
+//    @PostMapping("/fundinglist/top")
+//    public ResponseEntity<List<Funding>> getFavfundingList() {
+//        return fundingService.getTopfundingList(Const.TOP_FUNDINGLIST_CNT);
+//    }
 }

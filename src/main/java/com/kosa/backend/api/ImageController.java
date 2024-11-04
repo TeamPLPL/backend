@@ -15,29 +15,29 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class ImageController {
 
-    private final S3Service s3Service;
-
-    @PostMapping
-    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
-        try {
-            System.out.println(file.getOriginalFilename());
-            String imageUrl = s3Service.uploadFile(file);
-            System.out.println(imageUrl);
-            return ResponseEntity.ok(imageUrl);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload image");
-        }
-    }
-
-    @GetMapping("/{imageName}")
-    public ResponseEntity<InputStreamResource> getImage(@PathVariable("imageName") String imageName) {
-        try {
-            InputStreamResource resource = s3Service.downloadFile(imageName);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_JPEG) // 또는 적절한 이미지 타입
-                    .body(resource);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+//    private final S3Service s3Service;
+//
+//    @PostMapping
+//    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
+//        try {
+//            System.out.println(file.getOriginalFilename());
+//            String imageUrl = s3Service.uploadFile(file);
+//            System.out.println(imageUrl);
+//            return ResponseEntity.ok(imageUrl);
+//        } catch (IOException e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload image");
+//        }
+//    }
+//
+//    @GetMapping("/{imageName}")
+//    public ResponseEntity<InputStreamResource> getImage(@PathVariable("imageName") String imageName) {
+//        try {
+//            InputStreamResource resource = s3Service.downloadFile(imageName);
+//            return ResponseEntity.ok()
+//                    .contentType(MediaType.IMAGE_JPEG) // 또는 적절한 이미지 타입
+//                    .body(resource);
+//        } catch (IOException e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+//        }
+//    }
 }

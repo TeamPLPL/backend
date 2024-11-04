@@ -2,11 +2,9 @@ package com.kosa.backend.user.entity;
 
 import com.kosa.backend.common.entity.Auditable;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
+@Getter
 @Builder
 @AllArgsConstructor
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
@@ -17,7 +15,7 @@ public class Maker extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
