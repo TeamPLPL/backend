@@ -2,7 +2,9 @@ package com.kosa.backend.payment.entity;
 
 import com.kosa.backend.common.entity.Auditable;
 import jakarta.persistence.*;
+import lombok.Setter;
 
+@Setter
 @Entity
 @Table(name = "PAYMENT_METHOD")
 public class PaymentMethod extends Auditable {
