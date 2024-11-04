@@ -3,9 +3,11 @@ package com.kosa.backend.payment.entity;
 import com.kosa.backend.common.entity.Auditable;
 import com.kosa.backend.user.entity.User;
 import jakarta.persistence.*;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+@Setter
 @Entity
 @Table(name = "COUPON")
 public class Coupon extends Auditable {

@@ -4,9 +4,11 @@ import com.kosa.backend.common.entity.Auditable;
 import com.kosa.backend.payment.entity.eunms.PaymentStatus;
 import com.kosa.backend.user.entity.User;
 import jakarta.persistence.*;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+@Setter
 @Entity
 @Table(name = "PAYMENT")
 public class Payment extends Auditable {
