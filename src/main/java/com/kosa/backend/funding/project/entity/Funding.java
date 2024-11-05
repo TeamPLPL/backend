@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@Setter
 @Getter
 @Builder
 @AllArgsConstructor
@@ -63,7 +64,7 @@ public class Funding extends Auditable {
     private LocalDateTime publishDate;
 
     @OneToOne(cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "sub_category_id", nullable = false)
+    @JoinColumn(name = "sub_category_id", nullable = true)
     private SubCategory subCategory;
 
     @ManyToOne

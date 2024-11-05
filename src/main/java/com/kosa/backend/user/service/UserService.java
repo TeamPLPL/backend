@@ -43,5 +43,8 @@ public class UserService {
         return id;
     }
 
-    //
+    // email로 해당 User 조회
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).get();
+    }
 }

@@ -35,6 +35,7 @@ public class RequestProjectDTO {
     private Maker maker;
     private BusinessMaker businessMaker;
     private PersonalMaker personalMaker;
+    private SubCategory subCategory;
 
     public static Funding toSaveEntity(Maker maker) {
         return Funding.builder()
@@ -55,6 +56,7 @@ public class RequestProjectDTO {
                 .maker(maker)
                 .businessMaker(null)
                 .personalMaker(null)
+                .subCategory(null)
                 .build();
 
     }

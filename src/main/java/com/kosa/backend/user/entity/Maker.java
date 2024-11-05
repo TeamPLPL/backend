@@ -2,11 +2,9 @@ package com.kosa.backend.user.entity;
 
 import com.kosa.backend.common.entity.Auditable;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
+@Data
 @Builder
 @AllArgsConstructor
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)

@@ -63,8 +63,8 @@ public class WebSecurityConfig {
 
         // postman 사용하기 위한 임시 httpBasic
         http
-                .httpBasic(withDefaults());
-//              .httpBasic((auth) -> auth.disable());
+//                .httpBasic(withDefaults());
+              .httpBasic((auth) -> auth.disable());
 
         http
             .authorizeHttpRequests(authorize -> authorize
@@ -72,8 +72,8 @@ public class WebSecurityConfig {
                     // requestMathcer(String url).hasRole("ADMIN", "USER") 권한 여러개 등록할 수있음.
                     .requestMatchers("/api/admind/**").hasRole("ADMIN")
                     // 그 외에는 .anyRequest().authenticated()로 로그인 할 경우에만 접근할 수 있음.
-//                  .anyRequest().authenticated()
-                    .anyRequest().permitAll() // 개발 중에는 모든 접근 허용
+                  .anyRequest().authenticated()
+//                    .anyRequest().permitAll() // 개발 중에는 모든 접근 허용
             );
 
         //JWTFilter 등록
