@@ -1,23 +1,24 @@
-// PaymentDTO.java
 package com.kosa.backend.payment.dto;
 
-import com.kosa.backend.payment.entity.eunms.PaymentStatus;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
 public class PaymentDTO {
+    private int userId;
     private int amount;
-    private LocalDateTime paymentDate;
-    private PaymentStatus status;
     private String deliveryAddress;
     private String phoneNum;
     private String receiverName;
-    private int userId;
-    private Integer couponId;
-    private String cardNumber;
-    private String methodType;  // 추가: 카드인지 서드파티 페이인지 구분
-    private String thirdPartyId; // 서드파티 페이용 ID
-    private String thirdPartyPw; // 서드파티 페이용 PW
+    private Integer couponId; // Optional coupon ID
+
+    // PaymentMethod 관련 필드
+    private String methodType; // 결제 방식 (e.g., "CARD" or "THIRD_PARTY")
+    private String cardNumber; // 카드 번호 (methodType이 "CARD"일 때만 사용)
+    private String thirdPartyId; // 타사 결제 ID (methodType이 "THIRD_PARTY"일 때 사용)
+    private String thirdPartyPw; // 타사 결제 비밀번호 (methodType이 "THIRD_PARTY"일 때 사용)
+
+    private LocalDateTime paymentDate;
+    private String status;
 }
