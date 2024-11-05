@@ -12,6 +12,7 @@ import com.kosa.backend.funding.project.repository.SubCategoryRepository;
 import com.kosa.backend.funding.support.entity.FundingSupport;
 import com.kosa.backend.funding.support.repository.FundingSupportRepository;
 import com.kosa.backend.funding.support.repository.WishlistRepository;
+import com.kosa.backend.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -54,26 +56,31 @@ public class FundingService {
 
         List<FundingDTO> fundingDTOList = new ArrayList<>();
         for(Funding funding : newFundingList) {
-            InputStreamResource isr = null;
-            try {
-                isr = s3Service.downloadThumbnailByFundingId(funding.getId());
-            } catch(Exception e) {
-                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-            }
-
-            FundingDTO nfDto = FundingDTO.builder()
-                    .id(funding.getId())
-                    .fundingTitle(funding.getFundingTitle())
-                    .makerNick(funding.getMaker().getUser().getUserNick())
-                    .supportCnt(getFundingSupportUserCounts(funding))
-                    .wishlistCnt(wishlistRepository.countByFunding(funding))
-                    .thumbnailImg(isr)
-                    .build();
-
-            fundingDTOList.add(nfDto);
+            fundingDTOList.add(convertToFundingDTO(funding));
         }
 
         return ResponseEntity.ok(fundingDTOList);
+    }
+
+    public FundingDTO convertToFundingDTO(Funding funding) {
+        InputStreamResource isr = null;
+        try {
+            isr = s3Service.downloadThumbnailByFundingId(funding.getId());
+        } catch(Exception e) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+
+        double achieveRate = CommonUtils.calculateAchievementRate(funding.getCurrentAmount(), funding.getTargetAmount());
+
+        return FundingDTO.builder()
+                .id(funding.getId())
+                .fundingTitle(funding.getFundingTitle())
+                .makerNick(funding.getMaker().getUser().getUserNick())
+                .supportCnt(getFundingSupportUserCounts(funding))
+                .achievementRate(achieveRate)
+                .wishlistCnt(wishlistRepository.countByFunding(funding))
+                .thumbnailImg(isr)
+                .build();
     }
 
     public int getFundingSupportUserCounts(Funding funding) {
@@ -89,11 +96,22 @@ public class FundingService {
         return supporterCnt;
     }
 
-//    public ResponseEntity<List<Funding>> getTopfundingList(int cnt) {
-//        List<Funding> topfundingList = fundingRepository.findTopNByOrderByCountByFundingSupportDesc(cnt);
-//        if(topfundingList == null || topfundingList.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-//        }
-//        return ResponseEntity.ok(topfundingList);
-//    }
+    public ResponseEntity<List<FundingDTO>> getTopfundingList() {
+
+        LocalDateTime currentDate = LocalDateTime.now();
+        PageRequest pageRequest = PageRequest.of(0, Const.TOP_FUNDINGLIST_CNT);
+
+        List<Funding> topFundingList = fundingRepository.findTopFundingsWithSupporterCount(pageRequest, currentDate);
+        if(topFundingList == null || topFundingList.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+
+        List<FundingDTO> fundingDTOList = new ArrayList<>();
+
+        for(Funding funding : topFundingList) {
+            fundingDTOList.add(convertToFundingDTO(funding));
+        }
+
+        return ResponseEntity.ok(fundingDTOList);
+    }
 }

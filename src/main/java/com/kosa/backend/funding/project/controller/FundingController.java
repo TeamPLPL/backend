@@ -32,8 +32,8 @@ public class FundingController {
         return fundingService.getNewFundingList();
     }
 
-//    @PostMapping("/fundinglist/top")
-//    public ResponseEntity<List<Funding>> getFavfundingList() {
-//        return fundingService.getTopfundingList(Const.TOP_FUNDINGLIST_CNT);
-//    }
+    @PostMapping("/fundinglist/top")
+    public ResponseEntity<List<FundingDTO>> getFavfundingList() {
+        return fundingService.getTopfundingList();
+    }
 }
