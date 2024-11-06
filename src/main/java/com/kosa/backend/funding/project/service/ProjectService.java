@@ -77,7 +77,7 @@ public class ProjectService {
         Funding funding = fundingRepository.findById(projectId).orElseThrow(() ->
                 new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
 
-        // 2. 필요한 필드(대표자 이름, 대표자 이메일)만 업데이트, setter 리펙토링 요구
+        // 2. 필요한 필드(대표자 이름, 대표자 이메일)만 업데이트, setter 리펙토링 요구(2~5항목)
         if(projectInfoDTO.getRepName()!=null&&!projectInfoDTO.getRepName().equals("")){
             funding.setRepName(projectInfoDTO.getRepName());
         }
@@ -85,7 +85,32 @@ public class ProjectService {
             funding.setRepEmail(projectInfoDTO.getRepEmail());
         }
 
-        // 3. 메이커 유형 선택
+        // 3. 필요한 필드(목표 금액)만 업데이트
+        if(projectInfoDTO.getTargetAmount()!=0){
+            funding.setTargetAmount(projectInfoDTO.getTargetAmount());
+        }
+
+        // 4. 필요한 필드(펀딩 설명)만 업데이트
+        if(projectInfoDTO.getFundingExplanation()!=null&&!projectInfoDTO.getFundingExplanation().equals("")){
+            funding.setFundingExplanation(projectInfoDTO.getFundingExplanation());
+        }
+
+        // 6. 메이커 유형 선택
+        makerType(projectInfoDTO, funding);
+
+        // 5. 필요한 필드(펀딩 태그)만 업데이트
+        if(projectInfoDTO.getFundingTag()!=null&&!projectInfoDTO.getFundingTag().equals("")){
+            funding.setFundingTag(projectInfoDTO.getFundingTag());
+        }
+
+        // 7. 사진 저장
+
+        // 8. 저장
+        return fundingRepository.save(funding).getId();
+    }
+
+    // 6. 메이커 유형 선택, 메소드 분리
+    public void makerType(RequestProjectInfoDTO projectInfoDTO, Funding funding){
         if (projectInfoDTO.getMakerType() != null && !projectInfoDTO.getMakerType().equals("")) {
             MakerType makerType = null;
             if (projectInfoDTO.getMakerType().equals("personal")) {
@@ -133,8 +158,5 @@ public class ProjectService {
             }
             funding.setMakerType(makerType);
         }
-
-        // 5. 저장
-        return fundingRepository.save(funding).getId();
     }
 }
