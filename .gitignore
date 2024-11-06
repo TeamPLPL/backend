@@ -190,5 +190,8 @@ gradle-app.setting
 # application.yml
 application.yml
 
+#properties
+aws-credentials.properties
+
 # AWS 설정
 aws-credentials.properties
