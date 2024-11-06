@@ -1,5 +1,6 @@
 package com.kosa.backend.user.controller;
 
+import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.dto.UserInfoDTO;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.service.UserService;
@@ -18,10 +19,12 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/user-info")
-    public ResponseEntity<UserInfoDTO> getUserInfo(@AuthenticationPrincipal User user) {
-        if(user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    public ResponseEntity<UserInfoDTO> getUserInfo(@AuthenticationPrincipal CustomUserDetails cud) {
+        String userEmail = cud.getUsername();
+        User user = userService.getUser(userEmail);
+        if(user == null) { return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
         return userService.getUserInfo(user.getId());
     }
 }
