@@ -35,10 +35,12 @@ public class FundingService {
     private final FundingSupportRepository fundingSupportRepository;
     private final WishlistRepository wishlistRepository;
 
+    // 메인 카테고리 리스트 조회
     public List<MainCategory> getMainCategories() {
         return mainCategoryRepository.findAll();
     }
 
+    // 메인 카테고리 id별 서브 카테고리 리스트 조회
     public ResponseEntity<List<SubCategory>> getSubCategoriesById(int parentId) {
         List<SubCategory> subCategoryList = subCategoryRepository.findAllByMainCategory_Id(parentId);
         if (subCategoryList == null || subCategoryList.isEmpty()) {
@@ -47,16 +49,28 @@ public class FundingService {
         return ResponseEntity.ok(subCategoryList);
     }
 
+    // 최신순 펀딩 리스트 조회 (8개)
     public ResponseEntity<List<FundingDTO>> getNewFundingList() {
         PageRequest pageRequest = PageRequest.of(0, Const.NEW_FUNDINGLIST_CNT, Sort.by(Sort.Direction.DESC, "publishDate"));
         List<Funding> newFundingList = fundingRepository.findTopByOrderByPublishDateDesc(pageRequest);
         return convertToFundingDTOList(newFundingList);
     }
 
+    public ResponseEntity<List<FundingDTO>> getTopFundingList() {
+
+        LocalDateTime currentDate = LocalDateTime.now();
+        PageRequest pageRequest = PageRequest.of(0, Const.TOP_FUNDINGLIST_CNT);
+
+        List<Funding> topFundingList = fundingRepository.findTopFundingsWithSupporterCount(pageRequest, currentDate);
+
+        return convertToFundingDTOList(topFundingList);
+    }
+
+    // Funding -> FundingDTO 변환 메소드
     public FundingDTO convertToFundingDTO(Funding funding) {
-        InputStreamResource isr = null;
+        String thumbnailImgUrl = null;
         try {
-            isr = s3Service.getThumbnailByFundingId(funding.getId());
+            thumbnailImgUrl = s3Service.getThumbnailByFundingId(funding.getId());
         } catch(Exception e) {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -70,10 +84,23 @@ public class FundingService {
                 .supportCnt(getFundingSupportUserCounts(funding))
                 .achievementRate(achieveRate)
                 .wishlistCnt(wishlistRepository.countByFunding(funding))
-                .thumbnailImg(isr)
+                .thumbnailImgUrl(thumbnailImgUrl)
                 .build();
     }
 
+    // FundingList -> FundingDTOList 변환 메소드
+    public ResponseEntity<List<FundingDTO>> convertToFundingDTOList(List<Funding> fundingList) {
+        if(fundingList == null || fundingList.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+        List<FundingDTO> fundingDTOList = new ArrayList<>();
+        for(Funding funding : fundingList) {
+            fundingDTOList.add(convertToFundingDTO(funding));
+        }
+        return ResponseEntity.ok(fundingDTOList);
+    }
+
+    // 펀딩 참여자 수 계산 메소드
     public int getFundingSupportUserCounts(Funding funding) {
         if(funding == null) { return Const.NULL; }
 
@@ -85,26 +112,5 @@ public class FundingService {
                 .count();
 
         return supporterCnt;
-    }
-
-    public ResponseEntity<List<FundingDTO>> getTopFundingList() {
-
-        LocalDateTime currentDate = LocalDateTime.now();
-        PageRequest pageRequest = PageRequest.of(0, Const.TOP_FUNDINGLIST_CNT);
-
-        List<Funding> topFundingList = fundingRepository.findTopFundingsWithSupporterCount(pageRequest, currentDate);
-
-        return convertToFundingDTOList(topFundingList);
-    }
-
-    public ResponseEntity<List<FundingDTO>> convertToFundingDTOList(List<Funding> fundingList) {
-        if(fundingList == null || fundingList.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
-        List<FundingDTO> fundingDTOList = new ArrayList<>();
-        for(Funding funding : fundingList) {
-            fundingDTOList.add(convertToFundingDTO(funding));
-        }
-        return ResponseEntity.ok(fundingDTOList);
     }
 }
