@@ -4,9 +4,15 @@ import com.kosa.backend.common.entity.enums.ImgType;
 import com.kosa.backend.funding.project.entity.Funding;
 import com.kosa.backend.user.entity.User;
 import jakarta.persistence.*;
+import lombok.*;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
+@Builder
 @Entity
 @Table(name = "FILES")
+@NoArgsConstructor
+@AllArgsConstructor
 public class Files extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,10 +31,10 @@ public class Files extends Auditable {
     private ImgType imgType;
 
     @ManyToOne
-    @JoinColumn(name = "funding_id", nullable = false)
+    @JoinColumn(name = "funding_id")
     private Funding funding;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 }
