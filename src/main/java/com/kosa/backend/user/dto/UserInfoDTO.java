@@ -13,5 +13,5 @@ import org.springframework.core.io.InputStreamResource;
 public class UserInfoDTO {
     private int id;
     private String userNick;
-    private InputStreamResource profileImg;
+    private String profileImgUrl;
 }

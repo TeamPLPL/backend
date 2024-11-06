@@ -58,7 +58,7 @@ public class UserService {
         UserInfoDTO userInfoDTO = UserInfoDTO.builder()
                 .id(userId)
                 .userNick(currentUser.get().getUserNick())
-                .profileImg(s3Service.getProfileImgByUserId(userId))
+                .profileImgUrl(s3Service.getProfileImgByUserId(userId))
                 .build();
 
         return ResponseEntity.ok(userInfoDTO);

@@ -17,5 +17,5 @@ public class FundingDTO {
     private int supportCnt;
     private double achievementRate;
     private int wishlistCnt;
-    private InputStreamResource thumbnailImg;
+    private String thumbnailImgUrl;
 }
