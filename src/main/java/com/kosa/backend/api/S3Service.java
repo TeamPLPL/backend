@@ -76,34 +76,40 @@ public class S3Service {
         filesRepository.save(newFile);
     }
 
-    public InputStreamResource downloadThumbnailByFundingId(int fundingId) {
-        Optional<Files> tmpFile = filesRepository.findByIdAndImgType(fundingId, ImgType.THUMBNAIL);
+    public InputStreamResource getThumbnailByFundingId(int fundingId) {
+        Optional<Files> file = filesRepository.findByFundingIdAndImgType(fundingId, ImgType.THUMBNAIL);
 
-        if(tmpFile.isEmpty()) {
-            return null;
-        }
+        return downloadImgResource(file);
+    }
 
-        Files file = tmpFile.get();
+    public InputStreamResource getProfileImgByUserId(int userId) {
+        Optional<Files> file = filesRepository.findByUserIdAndImgType(userId, ImgType.PROFILE_IMAGE);
+
+        return downloadImgResource(file);
+    }
+
+    public InputStreamResource downloadImgResource(Optional<Files> file) {
+        if(file.isEmpty()) { return null; }
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
-                .key(file.getSavedNm())
+                .key(file.get().getSavedNm())
                 .build();
 
         ResponseInputStream<GetObjectResponse> object = s3Client.getObject(getObjectRequest);
         return new InputStreamResource(object);
     }
 
-//    public InputStreamResource downloadFile(String savedNm) throws IOException {
-//
-//        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-//                .bucket(bucketName)
-//                .key(savedNm)
-//                .build();
-//
-//        ResponseInputStream<GetObjectResponse> object = s3Client.getObject(getObjectRequest);
-//        return new InputStreamResource(object);
-//    }
+    public InputStreamResource downloadFile(String savedNm) throws IOException {
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(savedNm)
+                .build();
+
+        ResponseInputStream<GetObjectResponse> object = s3Client.getObject(getObjectRequest);
+        return new InputStreamResource(object);
+    }
 
 //    public String updateFile(String oldFileName, MultipartFile newFile) throws IOException {
 //        // 기존 파일 삭제

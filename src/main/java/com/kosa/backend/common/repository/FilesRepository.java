@@ -12,5 +12,7 @@ import java.util.Optional;
 
 public interface FilesRepository extends JpaRepository<Files, Integer> {
 
-    Optional<Files> findByIdAndImgType(int id, ImgType imgType);
+    Optional<Files> findByFundingIdAndImgType(int fundingId, ImgType imgType);
+
+    Optional<Files> findByUserIdAndImgType(int userId, ImgType imgType);
 }

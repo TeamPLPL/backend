@@ -50,22 +50,13 @@ public class FundingService {
     public ResponseEntity<List<FundingDTO>> getNewFundingList() {
         PageRequest pageRequest = PageRequest.of(0, Const.NEW_FUNDINGLIST_CNT, Sort.by(Sort.Direction.DESC, "publishDate"));
         List<Funding> newFundingList = fundingRepository.findTopByOrderByPublishDateDesc(pageRequest);
-        if(newFundingList == null || newFundingList.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
-
-        List<FundingDTO> fundingDTOList = new ArrayList<>();
-        for(Funding funding : newFundingList) {
-            fundingDTOList.add(convertToFundingDTO(funding));
-        }
-
-        return ResponseEntity.ok(fundingDTOList);
+        return convertToFundingDTOList(newFundingList);
     }
 
     public FundingDTO convertToFundingDTO(Funding funding) {
         InputStreamResource isr = null;
         try {
-            isr = s3Service.downloadThumbnailByFundingId(funding.getId());
+            isr = s3Service.getThumbnailByFundingId(funding.getId());
         } catch(Exception e) {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -96,22 +87,24 @@ public class FundingService {
         return supporterCnt;
     }
 
-    public ResponseEntity<List<FundingDTO>> getTopfundingList() {
+    public ResponseEntity<List<FundingDTO>> getTopFundingList() {
 
         LocalDateTime currentDate = LocalDateTime.now();
         PageRequest pageRequest = PageRequest.of(0, Const.TOP_FUNDINGLIST_CNT);
 
         List<Funding> topFundingList = fundingRepository.findTopFundingsWithSupporterCount(pageRequest, currentDate);
-        if(topFundingList == null || topFundingList.isEmpty()) {
+
+        return convertToFundingDTOList(topFundingList);
+    }
+
+    public ResponseEntity<List<FundingDTO>> convertToFundingDTOList(List<Funding> fundingList) {
+        if(fundingList == null || fundingList.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
-
         List<FundingDTO> fundingDTOList = new ArrayList<>();
-
-        for(Funding funding : topFundingList) {
+        for(Funding funding : fundingList) {
             fundingDTOList.add(convertToFundingDTO(funding));
         }
-
         return ResponseEntity.ok(fundingDTOList);
     }
 }

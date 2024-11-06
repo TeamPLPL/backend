@@ -34,6 +34,6 @@ public class FundingController {
 
     @PostMapping("/fundinglist/top")
     public ResponseEntity<List<FundingDTO>> getFavfundingList() {
-        return fundingService.getTopfundingList();
+        return fundingService.getTopFundingList();
     }
 }
