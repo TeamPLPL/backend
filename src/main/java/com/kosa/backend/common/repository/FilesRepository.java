@@ -15,4 +15,6 @@ public interface FilesRepository extends JpaRepository<Files, Integer> {
     Optional<Files> findByFundingIdAndImgType(int fundingId, ImgType imgType);
 
     Optional<Files> findByUserIdAndImgType(int userId, ImgType imgType);
+
+    int countAllByFundingIdAndImgType(int fundingId, ImgType imgType);
 }

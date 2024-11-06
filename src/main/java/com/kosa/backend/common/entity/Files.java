@@ -31,10 +31,10 @@ public class Files extends Auditable {
     private ImgType imgType;
 
     @ManyToOne
-    @JoinColumn(name = "funding_id", nullable = false)
+    @JoinColumn(name = "funding_id")
     private Funding funding;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 }

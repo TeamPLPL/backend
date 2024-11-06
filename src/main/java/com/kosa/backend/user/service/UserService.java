@@ -63,4 +63,9 @@ public class UserService {
 
         return ResponseEntity.ok(userInfoDTO);
     }
+
+    public User getUser(String userEmail) {
+        Optional<User> user = userRepository.findByEmail(userEmail);
+        return user.orElse(null);
+    }
 }

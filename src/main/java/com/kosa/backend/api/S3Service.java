@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -25,56 +26,55 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+
 @Service
 @RequiredArgsConstructor
 public class S3Service {
 
     private final S3Client s3Client;
     private final FundingRepository fundingRepository;
-    private final UserRepository userRepository;
     private final FilesRepository filesRepository;
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
 
-    @Transactional
-    public String uploadFile(MultipartFile file, String path, ImgType imgType, int fundingId, int userId) throws IOException {
-//        존재하지 않는 funding_id나 user_id가 전달될 경우 예외가 발생합니다. 이를 적절히 처리해야 합니다.
-//        트랜잭션 관리에 주의해야 합니다. 파일 업로드와 데이터베이스 저장이 하나의 트랜잭션으로 처리되어야 합니다.
-//        예외 처리를 보다 세밀하게 할 필요가 있습니다. 예를 들어, S3 업로드 실패 시 데이터베이스 저장을 롤백하는 등의 처리가 필요할 수 있습니다.
-
-        String fileName = generateFileName(file);
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(fileName)
-                .build();
-
-        // db에 저장
-        saveFile(file, path, imgType, fundingId, userId, fileName);
-
-        s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-        String fileUrl = s3Client.utilities().getUrl(builder -> builder.bucket(bucketName).key(fileName)).toString();
-        return fileUrl;
-    }
-
-    @Transactional
-    public void saveFile(MultipartFile file, String path, ImgType imgType, int fundingId, int userId, String fileName) {
-        Funding funding = fundingRepository.findById(fundingId)
-                .orElseThrow(() -> new RuntimeException("Funding not found"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Files newFile = Files.builder()
-                .path(path)
-                .originalNm(file.getOriginalFilename())
-                .savedNm(fileName)
-                .imgType(imgType)
-                .funding(funding)
-                .user(user)
-                .build();
-
-        filesRepository.save(newFile);
-    }
+//    @Transactional
+//    public String uploadFile(MultipartFile file, String path, ImgType imgType, int fundingId, int userId) throws IOException {
+//
+//        String fileName = generateFileName(file);
+//        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+//                .bucket(bucketName)
+//                .key(fileName) // key 매개변수로 fullpath 필요
+//                .build();
+//
+//        // db에 저장
+//        saveFile(file, path, imgType, fundingId, userId, fileName);
+//
+//        s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+//        String fileUrl = s3Client.utilities().getUrl(builder -> builder.bucket(bucketName).key(fileName)).toString();
+//        return fileUrl;
+//    }
+//
+//    @Transactional
+//    public void saveFile(MultipartFile file, String path, ImgType imgType, int fundingId, int userId, String fileName) {
+//        Funding funding = fundingRepository.findById(fundingId)
+//                .orElseThrow(() -> new RuntimeException("Funding not found"));
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new RuntimeException("User not found"));
+//
+//        Files newFile = Files.builder()
+//                .path(path)
+//                .originalNm(file.getOriginalFilename())
+//                .savedNm(fileName)
+//                .imgType(imgType)
+//                .funding(funding)
+//                .user(user)
+//                .build();
+//
+//        filesRepository.save(newFile);
+//    }
 
     public InputStreamResource getThumbnailByFundingId(int fundingId) {
         Optional<Files> file = filesRepository.findByFundingIdAndImgType(fundingId, ImgType.THUMBNAIL);
@@ -131,4 +131,78 @@ public class S3Service {
     private String generateFileName(MultipartFile file) {
         return UUID.randomUUID() + "-" + file.getOriginalFilename();
     }
+
+////////////////////////////
+
+    // 이미지파일 업로드 시 호출하는 메소드
+    // User는 불러올 곳에서 @AuthenticationPrincipal User user를 매개변수 맨 앞에 추가해주면 됨
+    // 썸네일, 펀딩디테일이미지는 fundingId 자리에 fundingId
+
+    @Transactional
+    public ResponseEntity<String> uploadImgFile(User user, MultipartFile file, ImgType imgType, int... fundingId) throws IOException {
+        if(user == null) {
+            System.out.println("user is null");
+            return ResponseEntity.status(UNAUTHORIZED).build();
+        }
+
+        String fileName = generateFileName(file);
+        int fId = -1;
+
+        String path = switch (imgType) {
+            case PROFILE_IMAGE -> String.format("profile-img/%d/", user.getId());   // /profile-img/{user-id}/
+            case THUMBNAIL -> {
+                fId = fundingId[0];
+                yield String.format("%d/thumbnail/", fId);   // {fundingId}/thumbnail/
+            }
+            case DETAIL_IMAGE -> {
+                fId = fundingId[0];
+                int count = filesRepository.countAllByFundingIdAndImgType(fId, imgType); // {funding-id}/detail-img/{++count}/
+                yield String.format("%d/detail-img/%d", fId, ++count);
+            }
+            default -> null;
+        };
+
+        String fullPath = path + fileName;
+        String fileUrl;
+
+        Files newFile = Files.builder()
+                .path(path)
+                .originalNm(file.getOriginalFilename())
+                .savedNm(fileName)
+                .imgType(imgType)
+                .user(user)
+                .build();
+
+        switch(imgType) {
+            case PROFILE_IMAGE:
+                break;
+            case THUMBNAIL, DETAIL_IMAGE:
+                Optional<Funding> funding = fundingRepository.findById(fId);
+                if(funding.isEmpty()) { return ResponseEntity.notFound().build(); }
+                newFile.setFunding(funding.get());
+                break;
+            default:
+                return ResponseEntity.status(INTERNAL_SERVER_ERROR).build();
+        }
+
+        // db에 파일 저장
+        filesRepository.save(newFile);
+
+        fileUrl = uploadS3ImgFile(file, fullPath);
+
+        return ResponseEntity.ok(fileUrl);
+    }
+
+    // bucket에 파일 업로드
+    public String uploadS3ImgFile(MultipartFile file, String fullPath) throws IOException {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(fullPath)
+                .build();
+
+        s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        String fileUrl = s3Client.utilities().getUrl(builder -> builder.bucket(bucketName).key(fullPath)).toString();
+        return fileUrl;
+    }
+
 }
