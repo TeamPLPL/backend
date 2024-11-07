@@ -2,6 +2,8 @@ package com.kosa.backend.funding.project.entity;
 
 import com.kosa.backend.common.entity.Auditable;
 import com.kosa.backend.funding.project.entity.enums.MakerType;
+import com.kosa.backend.funding.support.entity.FundingSupport;
+import com.kosa.backend.payment.entity.PaymentHistory;
 import com.kosa.backend.user.entity.Maker;
 import jakarta.persistence.*;
 import lombok.*;
@@ -56,9 +58,6 @@ public class Funding extends Auditable {
     private String fundingTag;
 
     @Column(nullable = false)
-    private boolean saveStatus;
-
-    @Column(nullable = false)
     private boolean isPublished;
 
     private LocalDateTime publishDate;
@@ -81,4 +80,11 @@ public class Funding extends Auditable {
 
     @OneToMany(mappedBy = "funding", cascade = CascadeType.ALL)
     List<Reward> rewards;
+
+    @ManyToOne
+    @JoinColumn(name = "funding_support_id", nullable = true)
+    private FundingSupport fundingSupport;
+
+    @OneToMany(mappedBy = "funding", cascade = CascadeType.ALL)
+    private List<PaymentHistory> paymentHistory;
 }

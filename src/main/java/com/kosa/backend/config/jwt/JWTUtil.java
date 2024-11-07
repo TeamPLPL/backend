@@ -1,6 +1,5 @@
 package com.kosa.backend.config.jwt;
 
-import com.kosa.backend.user.entity.enums.Authority;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -26,7 +25,7 @@ public class JWTUtil {
 
     public String getRole(String token) {
 
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("Authoriy", String.class);
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("Authority", String.class);
     }
 
     public Boolean isExpired(String token) {
@@ -35,12 +34,13 @@ public class JWTUtil {
     }
 
     public String createJwt(String email, String authority, Long expiredMs) {
+        long clockSkewMs = 60000; // 60초의 clock skew
 
         return Jwts.builder()
                 .claim("email", email)
-                .claim("Authoriy", authority)
+                .claim("Authority", authority)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiredMs))
+                .expiration(new Date(System.currentTimeMillis() + expiredMs + clockSkewMs))
                 .signWith(secretKey)
                 .compact();
     }
