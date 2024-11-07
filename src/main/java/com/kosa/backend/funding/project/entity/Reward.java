@@ -39,7 +39,8 @@ public class Reward extends Auditable {
     private Funding funding;
 
     @Builder
-    public Reward(String rewardName, int price, String explanation, int deliveryFee, LocalDateTime deliveryStartDate, Integer quantityLimit, Funding funding) {
+    public Reward(int id, String rewardName, int price, String explanation, int deliveryFee, LocalDateTime deliveryStartDate, Integer quantityLimit, Funding funding) {
+        this.id = id;
         this.rewardName = rewardName;
         this.price = price;
         this.explanation = explanation;
@@ -51,6 +52,7 @@ public class Reward extends Auditable {
 
     public static Reward toSaveEntity(RequestRewardDTO rewardDTO, Funding funding) {
         return Reward.builder()
+                .id(rewardDTO.getId())
                 .rewardName(rewardDTO.getRewardName())
                 .price(rewardDTO.getPrice())
                 .explanation(rewardDTO.getExplanation())

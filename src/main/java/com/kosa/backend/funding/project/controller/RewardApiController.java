@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -17,15 +18,15 @@ import java.util.Map;
 public class RewardApiController {
     private final RewardService rewardService;
 
-    // 프로젝트 리워드 생성 - 인트로 컨트롤러
+    // 프로젝트 리워드 생성
     @PostMapping("/studio/{id}/reward")
-    public ResponseEntity<?> reward(@RequestBody RequestRewardDTO rewardDTO
+    public ResponseEntity<?> reward(@RequestBody List<RequestRewardDTO> rewardsDTOList
             , @PathVariable(name = "id") int projectId) {
-        // 게시글, 제목, 카테고리 작성
-        int updatedProjectId = rewardService.save(rewardDTO, projectId);
+        // 리워드 여러개일 수 있음
+        rewardService.save(rewardsDTOList, projectId);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("projectId", updatedProjectId);
+//        response.put("projectId", updatedProjectId);
 
         return ResponseEntity.ok()
                 .body(response);
