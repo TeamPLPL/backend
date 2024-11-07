@@ -1,7 +1,7 @@
 // PaymentDTO.java
 package com.kosa.backend.payment.dto;
 
-import com.kosa.backend.payment.entity.eunms.PaymentStatus;
+import com.kosa.backend.payment.entity.enums.PaymentStatus;
 import lombok.Data;
 
 import java.time.LocalDateTime;
