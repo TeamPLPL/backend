@@ -5,7 +5,7 @@ import com.kosa.backend.payment.dto.PaymentDTO;
 import com.kosa.backend.payment.entity.Coupon;
 import com.kosa.backend.payment.entity.Payment;
 import com.kosa.backend.payment.entity.PaymentMethod;
-import com.kosa.backend.payment.entity.eunms.PaymentStatus;
+import com.kosa.backend.payment.entity.enums.PaymentStatus;
 import com.kosa.backend.payment.repository.CouponRepository;
 import com.kosa.backend.payment.repository.PaymentMethodRepository;
 import com.kosa.backend.payment.repository.PaymentRepository;

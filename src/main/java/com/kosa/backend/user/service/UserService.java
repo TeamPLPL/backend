@@ -1,6 +1,6 @@
 package com.kosa.backend.user.service;
 
-import com.kosa.backend.api.S3Service;
+import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.user.dto.UserDTO;
 import com.kosa.backend.user.dto.UserInfoDTO;
 import com.kosa.backend.user.entity.Maker;
@@ -58,7 +58,7 @@ public class UserService {
         UserInfoDTO userInfoDTO = UserInfoDTO.builder()
                 .id(userId)
                 .userNick(currentUser.get().getUserNick())
-                .profileImg(s3Service.getProfileImgByUserId(userId))
+                .profileImgUrl(s3Service.getProfileImgByUserId(userId))
                 .build();
 
         return ResponseEntity.ok(userInfoDTO);
