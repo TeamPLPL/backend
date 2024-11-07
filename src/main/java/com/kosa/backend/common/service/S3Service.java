@@ -1,25 +1,21 @@
-package com.kosa.backend.api;
+package com.kosa.backend.common.service;
 
-import com.kosa.backend.common.entity.Const;
 import com.kosa.backend.common.entity.Files;
 import com.kosa.backend.common.entity.enums.ImgType;
 import com.kosa.backend.common.repository.FilesRepository;
+import com.kosa.backend.common.repository.FilesSequenceRepository;
 import com.kosa.backend.funding.project.entity.Funding;
 import com.kosa.backend.funding.project.repository.FundingRepository;
 import com.kosa.backend.user.entity.User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
@@ -32,7 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +38,7 @@ public class S3Service {
     private final S3Presigner s3Presigner;
     private final FundingRepository fundingRepository;
     private final FilesRepository filesRepository;
+    private final FilesSequenceRepository filesSequenceRepository;
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
@@ -50,7 +47,7 @@ public class S3Service {
     // 이미지파일 업로드 메소드
     // 썸네일, 펀딩프로젝트상세이미지는 fundingId 자리에 fundingId값 넣기
     @Transactional
-    public ResponseEntity<String> uploadImgFile(User user, MultipartFile file, ImgType imgType, int... fundingId) throws IOException {
+    public ResponseEntity<String> uploadImgFile(User user, MultipartFile file, ImgType imgType, int... fundingId) {
         if(user == null) {
             System.out.println("user is null");
             return ResponseEntity.status(UNAUTHORIZED).build();
@@ -67,14 +64,12 @@ public class S3Service {
             }
             case DETAIL_IMAGE -> {
                 fId = fundingId[0];
-                int count = filesRepository.countAllByFundingIdAndImgType(fId, imgType); // {funding-id}/detail-img/{++count}/
-                yield String.format("%d/detail-img/%d", fId, ++count);
+                yield String.format("%d/detail-img", fId); // /{fundingId}/detail-img/
             }
-            default -> null;
+            case PROMOTION_IMAGE -> "promotion-img/"; // /promotion-img/
         };
 
         String fullPath = path + fileName;
-        System.out.println(fullPath);
 
         Files newFile = Files.builder()
                 .path(path)
@@ -93,14 +88,24 @@ public class S3Service {
                 newFile.setFunding(funding.get());
                 break;
             default:
-                return ResponseEntity.status(INTERNAL_SERVER_ERROR).build();
+            { return ResponseEntity.notFound().build(); }
         }
 
         // db에 파일 저장
         filesRepository.save(newFile);
 
+        Files savedFile = filesRepository.findBySavedNm(fileName).orElseThrow(RuntimeException::new);
+
+        // db에 파일 sequence 저장
+        filesSequenceRepository.save(savedFile);
+
         // 파일 업로드 후 서명된 URL 반환
-        uploadS3ImgFile(file, fullPath);
+        try {
+            uploadS3ImgFile(file, fullPath);
+        } catch(Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
         String signedUrl = generateSignedUrl(fullPath);
 
         return ResponseEntity.ok(signedUrl);
@@ -130,19 +135,21 @@ public class S3Service {
                 .build();
 
         s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-        s3Client.utilities().getUrl(builder -> builder.bucket(bucketName).key(fullPath)).toString();
+        s3Client.utilities().getUrl(builder -> builder.bucket(bucketName).key(fullPath));
     }
 
+    //////////////////
     // 편딩ID별 펀딩디테일이미지리스트 조회 메소드
     public List<String> getDetailImgListByFundingId(int fundingId) {
         List<Files> detailImgList = filesRepository.findAllByFundingIdAndImgType(fundingId, ImgType.DETAIL_IMAGE);
-        List<String> signedUrls = new ArrayList<>();
+        List<String> signedUrlList = new ArrayList<>();
         for (Files file : detailImgList) {
             String fullPath = file.getPath() + file.getSavedNm();
-            signedUrls.add(generateSignedUrl(fullPath));
+            signedUrlList.add(generateSignedUrl(fullPath));
         }
-        return signedUrls;
+        return signedUrlList;
     }
+    ///////////////////
 
     // 펀딩ID별 썸네일 조회 메소드
     public String getThumbnailByFundingId(int fundingId) {
@@ -156,35 +163,21 @@ public class S3Service {
         return file.map(f -> generateSignedUrl(f.getPath() + f.getSavedNm())).orElse(null);
     }
 
-    // S3 bucket에서 이미지 가져오는 메소드
-    public InputStreamResource downloadImgResource(Optional<Files> file) {
-        if(file.isEmpty()) { return null; }
-
-        String fullPath = file.get().getPath() + file.get().getSavedNm();
-        System.out.println(fullPath);
-
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(fullPath)
-                .build();
-
-        ResponseInputStream<GetObjectResponse> object = s3Client.getObject(getObjectRequest);
-        return new InputStreamResource(object);
-    }
-
     // 이미지 삭제 메소드
     @Transactional
-    public int deleteImgFile(User user, Files file) throws IOException {
+    public void deleteImgFile(User user, Files file) {
         if(user == null) {
             System.out.println("user is null");
-            return Const.FAIL;
+            return;
         } else if(file == null) {
             System.out.println("file is null");
-            return Const.FAIL;
+            return;
         }
 
         // DB 삭제
-        filesRepository.deleteById(file.getId());
+        int filesId = file.getId();
+        filesSequenceRepository.deleteByFilesId(filesId);
+        filesRepository.deleteById(filesId);
 
         String fullPath = file.getPath() + file.getSavedNm();
 
@@ -195,95 +188,46 @@ public class S3Service {
 
         s3Client.deleteObject(deleteObjectRequest);
 
-        return Const.SUCCESS;
     }
 
-    // 이미지 변경(삭제 후 생성) 메소드
-    @Transactional
-    public ResponseEntity<String> updateImgFile(User user, Files oldFile, MultipartFile newFile) throws IOException {
-        // 기존 파일 삭제
-        int deleteResult = deleteImgFile(user, oldFile);
-
-        if(deleteResult == Const.FAIL) { return ResponseEntity.status(INTERNAL_SERVER_ERROR).build(); }
-
-        // 새 파일 업로드
-        if(oldFile.getImgType() == ImgType.PROFILE_IMAGE) {
-            return uploadImgFile(user, newFile, oldFile.getImgType());
-        }
-        return uploadImgFile(user, newFile, oldFile.getImgType(), oldFile.getFunding().getId());
+    // 원래파일명으로 파일 조회
+    public Files getFilesByOriginalNm(String fileName) {
+        return filesRepository.findByOriginalNm(fileName).orElse(null);
     }
 
+    // 파일시퀀스 업데이트
+    public void updateFilesSequence(Files file) {
+        // filesSequence에서 지우고 다시 sequence 생성
+        filesSequenceRepository.deleteByFilesId(file.getId());
+        filesSequenceRepository.save(file);
+    }
 
+    ////////////////////
 
-
-////////////////////////////
-
-    //    @Transactional
-//    public String uploadFile(MultipartFile file, String path, ImgType imgType, int fundingId, int userId) throws IOException {
+    // S3 bucket에서 이미지 리소스 가져오는 메소드
+//    public InputStreamResource downloadImgResource(Optional<Files> file) {
+//        if(file.isEmpty()) { return null; }
 //
-//        String fileName = generateFileName(file);
-//        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-//                .bucket(bucketName)
-//                .key(fileName) // key 매개변수로 fullpath 필요
-//                .build();
-//
-//        // db에 저장
-//        saveFile(file, path, imgType, fundingId, userId, fileName);
-//
-//        s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-//        String fileUrl = s3Client.utilities().getUrl(builder -> builder.bucket(bucketName).key(fileName)).toString();
-//        return fileUrl;
-//    }
-//
-//    @Transactional
-//    public void saveFile(MultipartFile file, String path, ImgType imgType, int fundingId, int userId, String fileName) {
-//        Funding funding = fundingRepository.findById(fundingId)
-//                .orElseThrow(() -> new RuntimeException("Funding not found"));
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        Files newFile = Files.builder()
-//                .path(path)
-//                .originalNm(file.getOriginalFilename())
-//                .savedNm(fileName)
-//                .imgType(imgType)
-//                .funding(funding)
-//                .user(user)
-//                .build();
-//
-//        filesRepository.save(newFile);
-//    }
-
-
-//    public InputStreamResource downloadFile(String savedNm) throws IOException {
+//        String fullPath = file.get().getPath() + file.get().getSavedNm();
 //
 //        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
 //                .bucket(bucketName)
-//                .key(savedNm)
+//                .key(fullPath)
 //                .build();
 //
 //        ResponseInputStream<GetObjectResponse> object = s3Client.getObject(getObjectRequest);
 //        return new InputStreamResource(object);
 //    }
-
-//    public void deleteFile(String fileName) {
-//        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-//                .bucket(bucketName)
-//                .key(fileName)
-//                .build();
+    // 이미지 변경(삭제 후 생성) 메소드
+//    @Transactional
+//    public ResponseEntity<String> updateImgFile(User user, Files oldFile, MultipartFile newFile) throws IOException {
+//        // 기존 파일 삭제
+//        deleteImgFile(user, oldFile);
 //
-//        s3Client.deleteObject(deleteObjectRequest);
-//    }
-
-//    private static final String[] IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp"};
-//    private static boolean isImageFile(String fileName) {
-//        for (String extension : IMAGE_EXTENSIONS) {
-//            if (fileName.endsWith(extension)) {
-//                return true;
-//            }
+//        // 새 파일 업로드
+//        if(oldFile.getImgType() == ImgType.PROFILE_IMAGE) {
+//            return uploadImgFile(user, newFile, oldFile.getImgType());
 //        }
-//        return false;
+//        return uploadImgFile(user, newFile, oldFile.getImgType(), oldFile.getFunding().getId());
 //    }
-
-
 }
