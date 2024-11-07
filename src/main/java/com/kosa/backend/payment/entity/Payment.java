@@ -1,13 +1,14 @@
 package com.kosa.backend.payment.entity;
 
 import com.kosa.backend.common.entity.Auditable;
-import com.kosa.backend.payment.entity.eunms.PaymentStatus;
+import com.kosa.backend.payment.entity.enums.PaymentStatus;
 import com.kosa.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -43,4 +44,7 @@ public class Payment extends Auditable {
     @ManyToOne
     @JoinColumn(name = "coupon_id")
     private Coupon coupon;
+
+    @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL)
+    private List<PaymentHistory> paymentHistory;
 }

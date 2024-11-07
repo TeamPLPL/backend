@@ -1,7 +1,7 @@
 package com.kosa.backend.funding.project.service;
 
-import com.kosa.backend.api.S3Service;
 import com.kosa.backend.common.entity.Const;
+import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.funding.project.dto.FundingDTO;
 import com.kosa.backend.funding.project.entity.Funding;
 import com.kosa.backend.funding.project.entity.MainCategory;
@@ -14,7 +14,6 @@ import com.kosa.backend.funding.support.repository.FundingSupportRepository;
 import com.kosa.backend.funding.support.repository.WishlistRepository;
 import com.kosa.backend.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
