@@ -29,12 +29,12 @@ public class PaymentController {
     }
 
     @PostMapping("/complete")
-    public void handlePaymentCompletion(HttpServletResponse response) throws IOException {
+    public void handlePaymentCompletion(@RequestParam("id") String id, HttpServletResponse response) throws IOException {
         // NicePay의 POST 요청을 받았는지 확인하기 위한 로그
         logger.info("Received POST request from NicePay for payment completion");
 
         // 프론트엔드 개발 서버로 리디렉션 (GET 요청으로 변경)
-        response.sendRedirect("http://localhost:3000/web/wpurchase/reward/complete");
+        response.sendRedirect("http://localhost:3000/purchase/step30/" + id);
     }
 
     // 결제 이력 조회(User ID)

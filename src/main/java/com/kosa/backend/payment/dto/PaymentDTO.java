@@ -3,6 +3,7 @@ package com.kosa.backend.payment.dto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class PaymentDTO {
@@ -11,6 +12,7 @@ public class PaymentDTO {
     private String deliveryAddress;
     private String phoneNum;
     private String receiverName;
+    private String deliveryRequest;
     private Integer couponId; // Optional coupon ID
 
     // PaymentMethod 관련 필드
@@ -21,4 +23,7 @@ public class PaymentDTO {
 
     private LocalDateTime paymentDate;
     private String status;
+
+    private int fundingId; // 추가: 관련된 Funding ID
+    private List<Integer> rewardIds; // 추가: 관련된 Reward IDs
 }

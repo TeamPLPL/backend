@@ -1,12 +1,17 @@
 // PaymentService.java
 package com.kosa.backend.payment.service;
 
+import com.kosa.backend.funding.project.entity.Funding;
+import com.kosa.backend.funding.project.repository.FundingRepository;
+import com.kosa.backend.funding.project.repository.RewardRepository;
 import com.kosa.backend.payment.dto.PaymentDTO;
 import com.kosa.backend.payment.entity.Coupon;
 import com.kosa.backend.payment.entity.Payment;
+import com.kosa.backend.payment.entity.PaymentHistory;
 import com.kosa.backend.payment.entity.PaymentMethod;
 import com.kosa.backend.payment.entity.enums.PaymentStatus;
 import com.kosa.backend.payment.repository.CouponRepository;
+import com.kosa.backend.payment.repository.PaymentHistoryRepository;
 import com.kosa.backend.payment.repository.PaymentMethodRepository;
 import com.kosa.backend.payment.repository.PaymentRepository;
 import com.kosa.backend.user.entity.User;
@@ -26,7 +31,11 @@ public class PaymentService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final UserRepository userRepository;
     private final CouponRepository couponRepository;
+    private final FundingRepository fundingRepository;
+    private final RewardRepository rewardRepository;
+    private final PaymentHistoryRepository paymentHistoryRepository;
 
+    @Transactional
     public PaymentDTO createPayment(PaymentDTO paymentDTO) {
         // User 조회
         User user = userRepository.findById(paymentDTO.getUserId())
@@ -39,6 +48,10 @@ public class PaymentService {
                     .orElseThrow(() -> new RuntimeException("Coupon not found for ID: " + paymentDTO.getCouponId()));
         }
 
+        // Funding 조회
+        Funding funding = fundingRepository.findById(paymentDTO.getFundingId())
+                .orElseThrow(() -> new RuntimeException("Funding not found for ID: " + paymentDTO.getFundingId()));
+
         // Payment 엔티티 생성 및 저장
         Payment payment = new Payment();
         payment.setAmount(paymentDTO.getAmount());
@@ -47,6 +60,7 @@ public class PaymentService {
         payment.setDeliveryAddress(paymentDTO.getDeliveryAddress());
         payment.setPhoneNum(paymentDTO.getPhoneNum());
         payment.setReceiverName(paymentDTO.getReceiverName());
+        payment.setDeliveryRequest(paymentDTO.getDeliveryRequest());
         payment.setUser(user);
         payment.setCoupon(coupon);
 
@@ -66,7 +80,13 @@ public class PaymentService {
         paymentMethod.setPayment(savedPayment);
         paymentMethodRepository.save(paymentMethod);
 
-        // PaymentDTO 반환을 위한 매핑
+        // PaymentHistory 생성 및 저장
+        PaymentHistory paymentHistory = new PaymentHistory();
+        paymentHistory.setPayment(savedPayment);
+        paymentHistory.setFunding(funding);
+        paymentHistoryRepository.save(paymentHistory);
+
+        // PaymentDTO 반환
         PaymentDTO resultDTO = new PaymentDTO();
         resultDTO.setUserId(user.getId());
         resultDTO.setAmount(savedPayment.getAmount());
@@ -75,11 +95,12 @@ public class PaymentService {
         resultDTO.setReceiverName(savedPayment.getReceiverName());
         resultDTO.setCouponId(paymentDTO.getCouponId());
         resultDTO.setMethodType(paymentMethod.getMethodType());
-        resultDTO.setCardNumber(paymentMethod.getCardNumber()); // 카드 번호 포함
+        resultDTO.setCardNumber(paymentMethod.getCardNumber());
         resultDTO.setThirdPartyId(paymentMethod.getThirdPartyId());
         resultDTO.setThirdPartyPw(paymentMethod.getThirdPartyPw());
         resultDTO.setPaymentDate(savedPayment.getPaymentDate());
         resultDTO.setStatus(savedPayment.getStatus().toString());
+        resultDTO.setFundingId(funding.getId());
 
         return resultDTO;
     }

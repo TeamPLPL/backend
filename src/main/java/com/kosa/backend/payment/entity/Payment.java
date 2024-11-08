@@ -37,6 +37,8 @@ public class Payment extends Auditable {
     @Column(nullable = false)
     private String receiverName;
 
+    private String deliveryRequest; // 배송시 요구사항
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
