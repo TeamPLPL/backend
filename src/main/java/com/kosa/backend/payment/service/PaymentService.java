@@ -1,20 +1,27 @@
 // PaymentService.java
 package com.kosa.backend.payment.service;
 
+import com.kosa.backend.funding.project.entity.Funding;
+import com.kosa.backend.funding.project.repository.FundingRepository;
+import com.kosa.backend.funding.project.repository.RewardRepository;
 import com.kosa.backend.payment.dto.PaymentDTO;
 import com.kosa.backend.payment.entity.Coupon;
 import com.kosa.backend.payment.entity.Payment;
+import com.kosa.backend.payment.entity.PaymentHistory;
 import com.kosa.backend.payment.entity.PaymentMethod;
 import com.kosa.backend.payment.entity.enums.PaymentStatus;
 import com.kosa.backend.payment.repository.CouponRepository;
+import com.kosa.backend.payment.repository.PaymentHistoryRepository;
 import com.kosa.backend.payment.repository.PaymentMethodRepository;
 import com.kosa.backend.payment.repository.PaymentRepository;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +31,12 @@ public class PaymentService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final UserRepository userRepository;
     private final CouponRepository couponRepository;
+    private final FundingRepository fundingRepository;
+    private final RewardRepository rewardRepository;
+    private final PaymentHistoryRepository paymentHistoryRepository;
 
-    public Payment createPayment(PaymentDTO paymentDTO) {
+    @Transactional
+    public PaymentDTO createPayment(PaymentDTO paymentDTO) {
         // User 조회
         User user = userRepository.findById(paymentDTO.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found for ID: " + paymentDTO.getUserId()));
@@ -37,6 +48,10 @@ public class PaymentService {
                     .orElseThrow(() -> new RuntimeException("Coupon not found for ID: " + paymentDTO.getCouponId()));
         }
 
+        // Funding 조회
+        Funding funding = fundingRepository.findById(paymentDTO.getFundingId())
+                .orElseThrow(() -> new RuntimeException("Funding not found for ID: " + paymentDTO.getFundingId()));
+
         // Payment 엔티티 생성 및 저장
         Payment payment = new Payment();
         payment.setAmount(paymentDTO.getAmount());
@@ -45,6 +60,7 @@ public class PaymentService {
         payment.setDeliveryAddress(paymentDTO.getDeliveryAddress());
         payment.setPhoneNum(paymentDTO.getPhoneNum());
         payment.setReceiverName(paymentDTO.getReceiverName());
+        payment.setDeliveryRequest(paymentDTO.getDeliveryRequest());
         payment.setUser(user);
         payment.setCoupon(coupon);
 
@@ -64,6 +80,55 @@ public class PaymentService {
         paymentMethod.setPayment(savedPayment);
         paymentMethodRepository.save(paymentMethod);
 
-        return savedPayment;
+        // PaymentHistory 생성 및 저장
+        PaymentHistory paymentHistory = new PaymentHistory();
+        paymentHistory.setPayment(savedPayment);
+        paymentHistory.setFunding(funding);
+        paymentHistoryRepository.save(paymentHistory);
+
+        // PaymentDTO 반환
+        PaymentDTO resultDTO = new PaymentDTO();
+        resultDTO.setUserId(user.getId());
+        resultDTO.setAmount(savedPayment.getAmount());
+        resultDTO.setDeliveryAddress(savedPayment.getDeliveryAddress());
+        resultDTO.setPhoneNum(savedPayment.getPhoneNum());
+        resultDTO.setReceiverName(savedPayment.getReceiverName());
+        resultDTO.setCouponId(paymentDTO.getCouponId());
+        resultDTO.setMethodType(paymentMethod.getMethodType());
+        resultDTO.setCardNumber(paymentMethod.getCardNumber());
+        resultDTO.setThirdPartyId(paymentMethod.getThirdPartyId());
+        resultDTO.setThirdPartyPw(paymentMethod.getThirdPartyPw());
+        resultDTO.setPaymentDate(savedPayment.getPaymentDate());
+        resultDTO.setStatus(savedPayment.getStatus().toString());
+        resultDTO.setFundingId(funding.getId());
+
+        return resultDTO;
+    }
+
+    // 사용자 ID에 따른 결제 이력 조회
+    public List<Payment> getPaymentsByUserId(int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+        return paymentRepository.findByUser(user);
+    }
+
+    // 결제 ID에 따른 결제 이력 삭제
+    @Transactional
+    public void deletePaymentByUser(int paymentId, int userId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + paymentId));
+
+        if (payment.getUser().getId() == userId) {
+            paymentMethodRepository.deleteByPaymentAndPaymentUserId(payment, userId);
+            paymentRepository.delete(payment);
+        } else {
+            throw new RuntimeException("User does not have permission to delete this payment.");
+        }
+
+        // PaymentMethod 삭제
+        paymentMethodRepository.deleteByPaymentAndPaymentUserId(payment, userId);
+
+        // Payment 삭제
+        paymentRepository.delete(payment);
     }
 }
