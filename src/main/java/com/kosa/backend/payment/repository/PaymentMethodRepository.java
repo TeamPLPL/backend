@@ -5,8 +5,12 @@ import com.kosa.backend.payment.entity.PaymentMethod;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface PaymentMethodRepository extends JpaRepository<PaymentMethod, Integer> {
     // JpaRepository provides basic CRUD method.
-    void deleteByPaymentAndPaymentUserId(Payment payment, int userId);
+    Optional<PaymentMethod> findByPayment(Payment payment);
+    void deleteByPayment(Payment payment);
+
 }

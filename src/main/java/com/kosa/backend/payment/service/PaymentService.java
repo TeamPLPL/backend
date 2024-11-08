@@ -2,6 +2,7 @@
 package com.kosa.backend.payment.service;
 
 import com.kosa.backend.funding.project.entity.Funding;
+import com.kosa.backend.funding.project.entity.Reward;
 import com.kosa.backend.funding.project.repository.FundingRepository;
 import com.kosa.backend.funding.project.repository.RewardRepository;
 import com.kosa.backend.payment.dto.PaymentDTO;
@@ -86,6 +87,9 @@ public class PaymentService {
         paymentHistory.setFunding(funding);
         paymentHistoryRepository.save(paymentHistory);
 
+        // 반환할 rewardIds 데이터 가져오기
+        List<Integer> rewardIds = paymentDTO.getRewardIds();
+
         // PaymentDTO 반환
         PaymentDTO resultDTO = new PaymentDTO();
         resultDTO.setUserId(user.getId());
@@ -93,6 +97,7 @@ public class PaymentService {
         resultDTO.setDeliveryAddress(savedPayment.getDeliveryAddress());
         resultDTO.setPhoneNum(savedPayment.getPhoneNum());
         resultDTO.setReceiverName(savedPayment.getReceiverName());
+        resultDTO.setDeliveryRequest(savedPayment.getDeliveryRequest());  // 매핑 추가
         resultDTO.setCouponId(paymentDTO.getCouponId());
         resultDTO.setMethodType(paymentMethod.getMethodType());
         resultDTO.setCardNumber(paymentMethod.getCardNumber());
@@ -101,16 +106,55 @@ public class PaymentService {
         resultDTO.setPaymentDate(savedPayment.getPaymentDate());
         resultDTO.setStatus(savedPayment.getStatus().toString());
         resultDTO.setFundingId(funding.getId());
+        resultDTO.setRewardIds(rewardIds);  // 매핑 추가
 
         return resultDTO;
     }
 
     // 사용자 ID에 따른 결제 이력 조회
-    public List<Payment> getPaymentsByUserId(int userId) {
+    @Transactional
+    public List<PaymentDTO> getPaymentsByUserId(int userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
-        return paymentRepository.findByUser(user);
+
+        List<Payment> payments = paymentRepository.findByUser(user);
+
+        return payments.stream().map(payment -> {
+            PaymentMethod paymentMethod = paymentMethodRepository.findByPayment(payment)
+                    .orElseThrow(() -> new RuntimeException("PaymentMethod not found for Payment ID: " + payment.getId()));
+
+            PaymentHistory paymentHistory = paymentHistoryRepository.findByPayment(payment)
+                    .orElseThrow(() -> new RuntimeException("PaymentHistory not found for Payment ID: " + payment.getId()));
+
+            Funding funding = paymentHistory.getFunding();
+
+            // PaymentDTO 매핑
+            PaymentDTO dto = new PaymentDTO();
+            dto.setUserId(payment.getUser().getId());
+            dto.setAmount(payment.getAmount());
+            dto.setDeliveryAddress(payment.getDeliveryAddress());
+            dto.setPhoneNum(payment.getPhoneNum());
+            dto.setReceiverName(payment.getReceiverName());
+            dto.setDeliveryRequest(payment.getDeliveryRequest());
+            dto.setPaymentDate(payment.getPaymentDate());
+            dto.setStatus(payment.getStatus().toString());
+            dto.setMethodType(paymentMethod.getMethodType());
+            dto.setCardNumber(paymentMethod.getCardNumber());
+            dto.setThirdPartyId(paymentMethod.getThirdPartyId());
+            dto.setThirdPartyPw(paymentMethod.getThirdPartyPw());
+            dto.setFundingId(funding.getId());
+
+            // Reward ID 리스트 매핑
+            List<Integer> rewardIds = funding.getRewards().stream()
+                    .map(Reward::getId)  // reward.getId()를 호출할 수 있는지 확인
+                    .toList();
+            dto.setRewardIds(rewardIds);
+
+            return dto;
+        }).toList();
     }
+
+
 
     // 결제 ID에 따른 결제 이력 삭제
     @Transactional
@@ -118,17 +162,18 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + paymentId));
 
-        if (payment.getUser().getId() == userId) {
-            paymentMethodRepository.deleteByPaymentAndPaymentUserId(payment, userId);
-            paymentRepository.delete(payment);
-        } else {
+        if (payment.getUser().getId() != userId) {
             throw new RuntimeException("User does not have permission to delete this payment.");
         }
 
+        // PaymentHistory 삭제
+        paymentHistoryRepository.deleteByPayment(payment);
+
         // PaymentMethod 삭제
-        paymentMethodRepository.deleteByPaymentAndPaymentUserId(payment, userId);
+        paymentMethodRepository.deleteByPayment(payment);
 
         // Payment 삭제
         paymentRepository.delete(payment);
     }
+
 }
