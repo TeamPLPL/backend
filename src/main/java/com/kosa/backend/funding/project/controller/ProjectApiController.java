@@ -1,6 +1,5 @@
 package com.kosa.backend.funding.project.controller;
 
-import com.kosa.backend.api.S3Service;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectInfoDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectIntroDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectScheduleDTO;
@@ -91,8 +90,11 @@ public class ProjectApiController {
 
     }
 
-    @PostMapping("/studio/{id}/story")
-    public void main5() {
+    @GetMapping("/studio/{id}/delete")
+    public ResponseEntity<?> delete(@PathVariable(name = "id") int projectId) {
+        projectService.delete(projectId);
 
+        return ResponseEntity.ok()
+                .build();
     }
 }

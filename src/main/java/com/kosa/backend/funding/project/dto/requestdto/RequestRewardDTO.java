@@ -17,5 +17,5 @@ public class RequestRewardDTO {
     private String explanation;
     private int deliveryFee;
     private LocalDateTime deliveryStartDate;
-    private Integer quantityLimit;
+    private int quantityLimit;
 }

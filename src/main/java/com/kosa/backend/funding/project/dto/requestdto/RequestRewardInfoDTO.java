@@ -15,5 +15,4 @@ public class RequestRewardInfoDTO {
     private String manufacturer;
     private String manufacturingCountry;
     private String manufactureDate;
-    private String refundsPolicies;
 }

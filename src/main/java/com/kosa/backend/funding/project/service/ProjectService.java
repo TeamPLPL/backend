@@ -108,6 +108,16 @@ public class ProjectService {
         // 8. 저장
         return fundingRepository.save(funding).getId();
     }
+    
+    // 프로젝트 삭제
+    public void delete(int projectId) {
+        // 1. 기존 Funding 객체 조회
+        Funding funding = fundingRepository.findById(projectId).orElseThrow(() ->
+                new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
+
+        // 2. Funding 삭제
+        fundingRepository.delete(funding);
+    }
 
     // 6. 메이커 유형 선택, 메소드 분리
     public void makerType(RequestProjectInfoDTO projectInfoDTO, Funding funding){
