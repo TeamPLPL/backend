@@ -1,7 +1,6 @@
 package com.kosa.backend.payment.controller;
 
 import com.kosa.backend.payment.dto.PaymentDTO;
-import com.kosa.backend.payment.entity.Payment;
 import com.kosa.backend.payment.service.PaymentService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -39,14 +38,14 @@ public class PaymentController {
 
     // 결제 이력 조회(User ID)
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Payment>> getPaymentsByUserId(@PathVariable int userId) {
-        List<Payment> payments = paymentService.getPaymentsByUserId(userId);
+    public ResponseEntity<List<PaymentDTO>> getPaymentsByUserId(@PathVariable("userId") int userId) {
+        List<PaymentDTO> payments = paymentService.getPaymentsByUserId(userId);
         return ResponseEntity.ok(payments);
     }
 
     // 결제 이력 삭제(Pay ID)
     @DeleteMapping("/user/{userId}/delete/{paymentId}")
-    public ResponseEntity<Void> deletePaymentByUser(@PathVariable int userId, @PathVariable int paymentId) {
+    public ResponseEntity<Void> deletePaymentByUser(@PathVariable("userId") int userId, @PathVariable("paymentId") int paymentId) {
         paymentService.deletePaymentByUser(paymentId, userId);
         return ResponseEntity.noContent().build();
     }
