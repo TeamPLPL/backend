@@ -1,6 +1,7 @@
 package com.kosa.backend.funding.project.entity;
 
 import com.kosa.backend.common.entity.Auditable;
+import com.kosa.backend.common.entity.Files;
 import com.kosa.backend.funding.project.entity.enums.MakerType;
 import com.kosa.backend.funding.support.entity.FundingSupport;
 import com.kosa.backend.payment.entity.PaymentHistory;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@Setter
 @Getter
 @Builder
 @AllArgsConstructor
@@ -62,7 +64,7 @@ public class Funding extends Auditable {
     private LocalDateTime publishDate;
 
     @OneToOne(cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "sub_category_id", nullable = false)
+    @JoinColumn(name = "sub_category_id", nullable = true)
     private SubCategory subCategory;
 
     @ManyToOne
@@ -86,4 +88,7 @@ public class Funding extends Auditable {
 
     @OneToMany(mappedBy = "funding", cascade = CascadeType.ALL)
     private List<PaymentHistory> paymentHistory;
+
+    @OneToMany(mappedBy = "funding", cascade = CascadeType.ALL)
+    List<Files> files;
 }

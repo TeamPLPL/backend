@@ -1,8 +1,10 @@
 package com.kosa.backend.funding.project.entity;
 
 import com.kosa.backend.common.entity.Auditable;
+import com.kosa.backend.funding.project.dto.BusinessMakerDTO;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -23,4 +25,26 @@ public class BusinessMaker extends Auditable {
 
     @Column(nullable = false)
     private String companyName;
+
+    @OneToOne(mappedBy = "businessMaker", cascade = CascadeType.ALL)
+    private Funding funding;
+
+    @Builder
+    public BusinessMaker(String businessRegistNum, String businessRegistCertif, String companyName) {
+        this.businessRegistNum = businessRegistNum;
+        this.businessRegistCertif = businessRegistCertif;
+        this.companyName = companyName;
+    }
+
+    public void updateFromDTO(BusinessMakerDTO dto) {
+        if (dto.getBusinessRegistNum() != null) {
+            this.businessRegistNum = dto.getBusinessRegistNum();
+        }
+        if (dto.getBusinessRegistCertif() != null) {
+            this.businessRegistCertif = dto.getBusinessRegistCertif();
+        }
+        if (dto.getCompanyName() != null) {
+            this.companyName = dto.getCompanyName();
+        }
+    }
 }
