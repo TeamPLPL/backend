@@ -50,7 +50,7 @@ public class RequestProjectDTO {
                 .repEmail("none@gmail.com")
                 .fundingExplanation("내용")
                 .fundingTag("태그")
-                .saveStatus(false)
+//                .saveStatus(false)
                 .isPublished(false)
                 .publishDate(LocalDateTime.now())
                 .maker(maker)

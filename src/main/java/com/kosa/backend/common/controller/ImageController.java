@@ -1,7 +1,8 @@
-package com.kosa.backend.common.service;
+package com.kosa.backend.common.controller;
 
 import com.kosa.backend.common.entity.Files;
 import com.kosa.backend.common.entity.enums.ImgType;
+import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.service.UserService;
@@ -19,8 +20,9 @@ import java.util.List;
 @RequestMapping("/api/images")
 @RequiredArgsConstructor
 public class ImageController {
-    private final S3Service s3Service;
+
     private final UserService userService;
+    private final S3Service s3Service;
 
     @PostMapping("/userProfile")
     public ResponseEntity<String> uploadUserProfileImg(@AuthenticationPrincipal CustomUserDetails cud, @RequestPart("file") MultipartFile file) throws IOException {
