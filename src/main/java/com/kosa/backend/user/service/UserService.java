@@ -45,7 +45,9 @@ public class UserService {
 
         return id;
     }
-
+    
+    //
+    
     public ResponseEntity<UserInfoDTO> getUserInfo(int userId) {
 
         Optional<User> currentUser = userRepository.findById(userId);

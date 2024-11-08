@@ -1,17 +1,16 @@
 package com.kosa.backend.funding.project.controller;
 
-import com.kosa.backend.funding.project.dto.requestdto.RequestProjectDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectInfoDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectIntroDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectScheduleDTO;
 import com.kosa.backend.funding.project.service.ProjectService;
+import com.kosa.backend.funding.project.service.RewardService;
 import com.kosa.backend.user.entity.Maker;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.service.MakerService;
 import com.kosa.backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +24,7 @@ public class ProjectApiController {
     private final UserService userService;
     private final MakerService makerService;
     private final ProjectService projectService;
+    private final RewardService rewardService;
 
     // 프로젝트 생성 - 시작 컨트롤러
     @GetMapping("/studio/start")
@@ -76,6 +76,7 @@ public class ProjectApiController {
                 .body(response);
     }
 
+    // 프로젝트 생성 - 정보 입력 컨트롤러
     @PostMapping("/studio/{id}/screening")
     public ResponseEntity<?> screening(@RequestBody RequestProjectInfoDTO projectInfoDTO
             , @PathVariable(name = "id") int projectId) {
@@ -89,8 +90,11 @@ public class ProjectApiController {
 
     }
 
-    @PostMapping("/studio/{id}/story")
-    public void main5() {
+    @GetMapping("/studio/{id}/delete")
+    public ResponseEntity<?> delete(@PathVariable(name = "id") int projectId) {
+        projectService.delete(projectId);
 
+        return ResponseEntity.ok()
+                .build();
     }
 }

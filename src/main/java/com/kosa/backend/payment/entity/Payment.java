@@ -4,11 +4,13 @@ import com.kosa.backend.common.entity.Auditable;
 import com.kosa.backend.payment.entity.enums.PaymentStatus;
 import com.kosa.backend.user.entity.User;
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Getter
 @Setter
 @Entity
 @Table(name = "PAYMENT")
@@ -34,6 +36,8 @@ public class Payment extends Auditable {
 
     @Column(nullable = false)
     private String receiverName;
+
+    private String deliveryRequest; // 배송시 요구사항
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

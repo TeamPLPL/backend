@@ -2,8 +2,10 @@ package com.kosa.backend.payment.entity;
 
 import com.kosa.backend.common.entity.Auditable;
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.Setter;
 
+@Getter
 @Setter
 @Entity
 @Table(name = "PAYMENT_METHOD")

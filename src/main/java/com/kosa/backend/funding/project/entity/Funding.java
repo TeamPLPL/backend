@@ -1,6 +1,7 @@
 package com.kosa.backend.funding.project.entity;
 
 import com.kosa.backend.common.entity.Auditable;
+import com.kosa.backend.common.entity.Files;
 import com.kosa.backend.funding.project.entity.enums.MakerType;
 import com.kosa.backend.funding.support.entity.FundingSupport;
 import com.kosa.backend.payment.entity.PaymentHistory;
@@ -87,4 +88,7 @@ public class Funding extends Auditable {
 
     @OneToMany(mappedBy = "funding", cascade = CascadeType.ALL)
     private List<PaymentHistory> paymentHistory;
+
+    @OneToMany(mappedBy = "funding", cascade = CascadeType.ALL)
+    List<Files> files;
 }
