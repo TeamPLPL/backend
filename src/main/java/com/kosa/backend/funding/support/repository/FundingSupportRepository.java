@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface FundingSupportRepository extends JpaRepository<FundingSupport, Integer> {
     List<FundingSupport> findByFundingId(int fundingId);
+    List<FundingSupport> findAllByRewardId(int rewardId);
 }

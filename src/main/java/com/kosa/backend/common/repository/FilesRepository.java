@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-
-
 public interface FilesRepository extends JpaRepository<Files, Integer> {
 
     Optional<Files> findByFundingIdAndImgType(int fundingId, ImgType imgType);
