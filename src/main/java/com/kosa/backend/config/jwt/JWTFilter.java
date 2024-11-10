@@ -5,6 +5,7 @@ import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.entity.enums.Authority;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +27,13 @@ public class JWTFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        // request에서 Authorization 헤더를 찾음
+        //request에서 Authorization 헤더를 찾음
         String authorization= request.getHeader("Authorization");
 
-        // Authorization 헤더 검증
+        //Authorization 헤더 검증
         if (authorization == null || !authorization.startsWith("Bearer ")) {
 
-            System.out.println("token null");
+            System.out.println("token null(로그인, 회원가입 할 때는 token null 나오는게 맞음.)");
             filterChain.doFilter(request, response);
 
             //조건이 해당되면 메소드 종료 (필수)

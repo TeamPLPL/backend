@@ -65,10 +65,11 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
 
-        String role = auth.getAuthority();
+        String authoriy = auth.getAuthority();
 
-        String token = jwtUtil.createJwt(email, role, 60*60*10*10L);
+        String token = jwtUtil.createJwt(email, authoriy, 60*60*10*10L);
 
+        System.out.println("Login is success, u get token!");
         response.addHeader("Authorization", "Bearer " + token);
     }
 

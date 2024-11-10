@@ -3,11 +3,15 @@ package com.kosa.backend.config;
 import com.kosa.backend.config.jwt.JWTFilter;
 import com.kosa.backend.config.jwt.JWTUtil;
 import com.kosa.backend.config.jwt.LoginFilter;
+import com.kosa.backend.config.oauth2.CustomSuccessHandler;
+import com.kosa.backend.config.service.CustomOAuth2UserService;
 import com.kosa.backend.user.service.UserDetailService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,8 +20,15 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -33,10 +44,15 @@ public class WebSecurityConfig {
     // AuthenticationManager가 인자로 받을 AuthenticationConfiguraion 객체 생성자 주입
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomSuccessHandler customSuccessHandler;
 
-    public WebSecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil) {
+    public WebSecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil
+            ,CustomOAuth2UserService customOAuth2UserService, CustomSuccessHandler customSuccessHandler) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtil = jwtUtil;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.customSuccessHandler = customSuccessHandler;
     }
 
     //AuthenticationManager Bean 등록
@@ -53,42 +69,72 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChin(HttpSecurity http) throws Exception {
+        // CORS 설정
+        http
+                .cors(cors -> cors
+                        .configurationSource(corsConfigurationSource()));
+
         // csrf disable
         http
                 .csrf((csrfConfig) -> csrfConfig
                         .disable());
+
+        // 세션 비활성화
+        http
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
         //From 로그인 방식 disable
         http
                 .formLogin((auth) -> auth.disable());
 
-        // postman 사용하기 위한 임시 httpBasic
+        //httpBasic 로그인 방식 disable
         http
-//                .httpBasic(withDefaults());
               .httpBasic((auth) -> auth.disable());
 
         http
-            .authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers("/api/login", "/api/signup","/api/user").permitAll()
-                    // requestMathcer(String url).hasRole("ADMIN", "USER") 권한 여러개 등록할 수있음.
-                    .requestMatchers("/api/admind/**").hasRole("ADMIN")
-                    // 그 외에는 .anyRequest().authenticated()로 로그인 할 경우에만 접근할 수 있음.
-                  .anyRequest().authenticated()
-//                    .anyRequest().permitAll() // 개발 중에는 모든 접근 허용
-            );
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/api/login"
+                                , "/api/signup"
+                                , "/api/user"
+                                , "/oauth2/**"
+                                , "/login/oauth2/**").permitAll()
+                        .requestMatchers("/api/admind/**").hasRole("ADMIN")
+                        .anyRequest().permitAll()
+                );
 
-        //JWTFilter 등록
+        //oauth2 설정
         http
-                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
+                .oauth2Login((oauth2) -> oauth2
+                        .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
+                                .userService(customOAuth2UserService))
+                        .successHandler(customSuccessHandler)
+                );
+
+        //JWTFilter 추가
+        http
+                .addFilterAfter(new JWTFilter(jwtUtil), OAuth2LoginAuthenticationFilter.class);
 
         //AuthenticationManager()와 JWTUtil 인수 전달
         http
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
-        http
-                .sessionManagement((session) -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+        configuration.setAllowedMethods(Collections.singletonList("*"));
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        configuration.setExposedHeaders(Arrays.asList("Set-Cookie", "Authorization"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     /*
