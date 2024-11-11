@@ -2,6 +2,7 @@ package com.kosa.backend.payment.entity;
 
 import com.kosa.backend.common.entity.Auditable;
 import com.kosa.backend.payment.entity.enums.PaymentStatus;
+import com.kosa.backend.user.entity.Address;
 import com.kosa.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -29,9 +30,6 @@ public class Payment extends Auditable {
     @Column(nullable = false)
     private PaymentStatus status;
 
-    @Column(nullable = false)
-    private String deliveryAddress;
-
     private String phoneNum;
 
     @Column(nullable = false)
@@ -49,4 +47,8 @@ public class Payment extends Auditable {
 
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL)
     private List<PaymentHistory> paymentHistory;
+
+    @ManyToOne
+    @JoinColumn(name = "address_id", nullable = false)
+    private Address address;
 }

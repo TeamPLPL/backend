@@ -27,11 +27,11 @@ public class FundingController {
         return fundingService.getSubCategoriesById(parentId);
     }
 
-    @PostMapping("/fundinglist/new")
+    @GetMapping("/fundinglist/new")
     public ResponseEntity<List<FundingDTO>> getNewFundingList() {
         return fundingService.getNewFundingList();
     }
 
-    @PostMapping("/fundinglist/top")
+    @GetMapping("/fundinglist/top")
     public ResponseEntity<List<FundingDTO>> getTopFundingList() { return fundingService.getTopFundingList(); }
 }

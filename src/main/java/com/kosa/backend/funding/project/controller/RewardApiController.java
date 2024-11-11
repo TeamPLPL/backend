@@ -63,10 +63,10 @@ public class RewardApiController {
 
     // 매개변수: rewardDTO 안에 rewardId, count 담긴 List
     // rewardDTOList와 deliveryFee 담긴 RewardResponseDTO 담긴 ResponseEntity 반환
-    @GetMapping("/reward-list")
-    public ResponseEntity<RewardResponseDTO> getRewardDTOList(List<RewardDTO> rewardDTOList) {
-        Map<List<RewardDTO>, Integer> rewardDTOListMap = new HashMap<>();
+    @PostMapping("/reward-list")
+    public ResponseEntity<RewardResponseDTO> getRewardDTOList(@RequestBody List<RewardDTO> rewardDTOList) {
 
         return rewardService.getRewardDTOList(rewardDTOList);
     }
+
 }
