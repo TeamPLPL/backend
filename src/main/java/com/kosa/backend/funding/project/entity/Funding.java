@@ -59,6 +59,9 @@ public class Funding extends Auditable {
     private String fundingTag;
 
     @Column(nullable = false)
+    private boolean saveStatus;
+
+    @Column(nullable = false)
     private boolean isPublished;
 
     private LocalDateTime publishDate;

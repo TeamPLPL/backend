@@ -1,9 +1,9 @@
 package com.kosa.backend.funding.project.controller;
 
-import com.kosa.backend.funding.project.dto.requestdto.RequestProjectIntroDTO;
+import com.kosa.backend.funding.project.dto.RewardDTO;
+import com.kosa.backend.funding.project.dto.RewardResponseDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestRewardDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestRewardInfoDTO;
-import com.kosa.backend.funding.project.service.ProjectService;
 import com.kosa.backend.funding.project.service.RewardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -60,4 +60,13 @@ public class RewardApiController {
 //        return ResponseEntity.ok()
 //                .body(response);
 //    }
+
+    // 매개변수: rewardDTO 안에 rewardId, count 담긴 List
+    // rewardDTOList와 deliveryFee 담긴 RewardResponseDTO 담긴 ResponseEntity 반환
+    @PostMapping("/reward-list")
+    public ResponseEntity<RewardResponseDTO> getRewardDTOList(@RequestBody List<RewardDTO> rewardDTOList) {
+
+        return rewardService.getRewardDTOList(rewardDTOList);
+    }
+
 }
