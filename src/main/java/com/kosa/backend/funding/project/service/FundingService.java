@@ -3,6 +3,8 @@ package com.kosa.backend.funding.project.service;
 import com.kosa.backend.common.entity.Const;
 import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.funding.project.dto.FundingDTO;
+import com.kosa.backend.funding.project.dto.MainCategoryDTO;
+import com.kosa.backend.funding.project.dto.SubCategoryDTO;
 import com.kosa.backend.funding.project.entity.Funding;
 import com.kosa.backend.funding.project.entity.MainCategory;
 import com.kosa.backend.funding.project.entity.SubCategory;
@@ -35,17 +37,31 @@ public class FundingService {
     private final WishlistRepository wishlistRepository;
 
     // 메인 카테고리 리스트 조회
-    public List<MainCategory> getMainCategories() {
-        return mainCategoryRepository.findAll();
+    public List<MainCategoryDTO> getMainCategories() {
+        List<MainCategory> mainCategories = mainCategoryRepository.findAll();
+        List<MainCategoryDTO> mainCategoryDTOList = new ArrayList<>();
+        for(MainCategory mainCategory : mainCategories) {
+            MainCategoryDTO mcDTO = MainCategoryDTO.builder()
+                    .mainCategoryId(mainCategory.getId())
+                    .mainCategoryName(mainCategory.getMainCategoryName())
+                    .build();
+            mainCategoryDTOList.add(mcDTO);
+        }
+        return mainCategoryDTOList;
     }
 
     // 메인 카테고리 id별 서브 카테고리 리스트 조회
-    public ResponseEntity<List<SubCategory>> getSubCategoriesById(int parentId) {
+    public List<SubCategoryDTO> getSubCategoriesById(int parentId) {
         List<SubCategory> subCategoryList = subCategoryRepository.findAllByMainCategory_Id(parentId);
-        if (subCategoryList == null || subCategoryList.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        List<SubCategoryDTO> subCategoryDTOList = new ArrayList<>();
+        for(SubCategory subCategory : subCategoryList) {
+         SubCategoryDTO scDTO = SubCategoryDTO.builder()
+                 .subCategoryId(subCategory.getId())
+                 .subCategoryName(subCategory.getSubCategoryName())
+                 .build();
+         subCategoryDTOList.add(scDTO);
         }
-        return ResponseEntity.ok(subCategoryList);
+        return subCategoryDTOList;
     }
 
     // 최신순 펀딩 리스트 조회 (8개)
