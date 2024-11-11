@@ -29,7 +29,7 @@ public class User extends Auditable implements UserDetails { // UserDetails를 �
     @Column(nullable = false)
     private String userName;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String userNick;
 
     @Column(name="password")
@@ -52,7 +52,7 @@ public class User extends Auditable implements UserDetails { // UserDetails를 �
 
     @Builder
     public User(String email, String password, Authority authority, String userNick
-        ,String userName,LocalDateTime joinDate,boolean isQuit, int complaintCount) {
+        ,String userName,LocalDateTime joinDate,boolean isQuit, int complaintCount, String provider) {
         this.email = email;
         this.password = password;
         this.userNick = userNick;
@@ -61,6 +61,7 @@ public class User extends Auditable implements UserDetails { // UserDetails를 �
         this.joinDate = joinDate;
         this.isQuit = isQuit;
         this.complaintCount = complaintCount;
+        this.provider = provider;
     }
 
     @Override // 사용자가 가지는 권한에 대한 정보 반환
