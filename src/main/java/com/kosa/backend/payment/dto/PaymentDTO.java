@@ -3,13 +3,15 @@ package com.kosa.backend.payment.dto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class PaymentDTO {
+    private int id;
     private int userId;
     private int amount;
-    private String deliveryAddress;
     private String phoneNum;
     private String receiverName;
     private String deliveryRequest;
@@ -24,6 +26,15 @@ public class PaymentDTO {
     private LocalDateTime paymentDate;
     private String status;
 
+    private int addressId;
     private int fundingId; // 추가: 관련된 Funding ID
-    private List<Integer> rewardIds; // 추가: 관련된 Reward IDs
+
+    // 선택된 리워드 ID와 정보 포함
+    private Map<Integer, RewardInfo> rewards = Collections.emptyMap();
+
+    @Data
+    public static class RewardInfo {
+        private int rewardId;
+        private String rewardName;
+    }
 }
