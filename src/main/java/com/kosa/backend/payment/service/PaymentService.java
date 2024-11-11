@@ -58,7 +58,7 @@ public class PaymentService {
         payment.setAmount(paymentDTO.getAmount());
         payment.setPaymentDate(LocalDateTime.now());
         payment.setStatus(PaymentStatus.pending);
-        payment.setDeliveryAddress(paymentDTO.getDeliveryAddress());
+//        payment.setDeliveryAddress(paymentDTO.getDeliveryAddress());
         payment.setPhoneNum(paymentDTO.getPhoneNum());
         payment.setReceiverName(paymentDTO.getReceiverName());
         payment.setDeliveryRequest(paymentDTO.getDeliveryRequest());
@@ -94,7 +94,7 @@ public class PaymentService {
         PaymentDTO resultDTO = new PaymentDTO();
         resultDTO.setUserId(user.getId());
         resultDTO.setAmount(savedPayment.getAmount());
-        resultDTO.setDeliveryAddress(savedPayment.getDeliveryAddress());
+//        resultDTO.setDeliveryAddress(savedPayment.getDeliveryAddress());
         resultDTO.setPhoneNum(savedPayment.getPhoneNum());
         resultDTO.setReceiverName(savedPayment.getReceiverName());
         resultDTO.setDeliveryRequest(savedPayment.getDeliveryRequest());  // 매핑 추가
@@ -132,7 +132,7 @@ public class PaymentService {
             PaymentDTO dto = new PaymentDTO();
             dto.setUserId(payment.getUser().getId());
             dto.setAmount(payment.getAmount());
-            dto.setDeliveryAddress(payment.getDeliveryAddress());
+//            dto.setDeliveryAddress(payment.getDeliveryAddress());
             dto.setPhoneNum(payment.getPhoneNum());
             dto.setReceiverName(payment.getReceiverName());
             dto.setDeliveryRequest(payment.getDeliveryRequest());
