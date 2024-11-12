@@ -4,6 +4,8 @@ import com.kosa.backend.funding.project.entity.Funding;
 import com.kosa.backend.funding.project.entity.Reward;
 import com.kosa.backend.funding.project.repository.FundingRepository;
 import com.kosa.backend.funding.project.repository.RewardRepository;
+import com.kosa.backend.funding.support.entity.FundingSupport;
+import com.kosa.backend.funding.support.repository.FundingSupportRepository;
 import com.kosa.backend.payment.dto.PaymentDTO;
 import com.kosa.backend.payment.entity.*;
 import com.kosa.backend.payment.entity.enums.PaymentStatus;
@@ -13,15 +15,11 @@ import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.repository.AddressRepository;
 import com.kosa.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +34,7 @@ public class PaymentService {
     private final AddressRepository addressRepository;
     private final RewardRepository rewardRepository;
     private final PaymentHistoryRepository paymentHistoryRepository;
+    private final FundingSupportRepository fundingSupportRepository;
 
     @Transactional
     public PaymentDTO createPayment(PaymentDTO paymentDTO) {
@@ -87,39 +86,56 @@ public class PaymentService {
         PaymentHistory paymentHistory = new PaymentHistory();
         paymentHistory.setPayment(savedPayment);
         paymentHistory.setFunding(funding);
-
         paymentHistoryRepository.save(paymentHistory);
 
-        // 선택된 리워드 필터링
-        List<Reward> selectedRewards = paymentDTO.getRewards().values().stream()
-                .map(rewardInfo -> rewardRepository.findById(rewardInfo.getRewardId())
-                        .orElseThrow(() -> new RuntimeException("리워드를 찾을 수 없습니다: " + rewardInfo.getRewardId())))
-                .collect(Collectors.toList());
+        // 새로운 FundingSupport 저장
+        paymentDTO.getRewards().forEach((rewardId, rewardInfo) -> {
+            Reward reward = rewardRepository.findById(rewardId)
+                    .orElseThrow(() -> new RuntimeException("리워드를 찾을 수 없습니다: " + rewardId));
 
-        // 반환 DTO 작성
-        return mapToDTO(savedPayment, funding, selectedRewards);
+            FundingSupport fundingSupport = FundingSupport.builder()
+                    .reward(reward)
+                    .funding(funding)
+                    .user(user)
+                    .payment(savedPayment)  // Payment 설정
+                    .rewardCount(rewardInfo.getQuantity())
+                    .supportDate(LocalDateTime.now())
+                    .build();
+
+            fundingSupportRepository.save(fundingSupport);
+        });
+
+        return mapToDTO(savedPayment, funding, paymentDTO.getRewards());
     }
 
     @Transactional
     public List<PaymentDTO> getPaymentsByUserId(int userId) {
-        // 특정 사용자의 모든 Payment 기록 조회
         List<Payment> payments = paymentRepository.findByUser_Id(userId);
 
         return payments.stream().map(payment -> {
-            // PaymentHistory 조회
             PaymentHistory paymentHistory = paymentHistoryRepository.findByPayment(payment)
                     .orElseThrow(() -> new RuntimeException("결제 내역을 찾을 수 없습니다: " + payment.getId()));
 
             Funding funding = paymentHistory.getFunding();
 
-            // 선택된 리워드 필터링 (PaymentDTO를 통해 선택된 리워드 정보 가져오기)
-            Map<Integer, PaymentDTO.RewardInfo> selectedRewardMap = mapToDTO(payment, funding, Collections.emptyList()).getRewards();
+            List<FundingSupport> fundingSupports = fundingSupportRepository.findByFundingIdAndUserIdAndPaymentId(
+                    funding.getId(), payment.getUser().getId(), payment.getId()
+            );
 
-            List<Reward> selectedRewards = funding.getRewards().stream()
-                    .filter(reward -> selectedRewardMap.containsKey(reward.getId())) // 선택된 리워드만 필터링
-                    .collect(Collectors.toList());
+            Map<Integer, PaymentDTO.RewardInfo> rewardsMap = fundingSupports.stream()
+                    .collect(Collectors.toMap(
+                            fs -> fs.getReward().getId(),
+                            fs -> {
+                                PaymentDTO.RewardInfo rewardInfo = new PaymentDTO.RewardInfo();
+                                rewardInfo.setRewardId(fs.getReward().getId());
+                                rewardInfo.setRewardName(fs.getReward().getRewardName());
+                                rewardInfo.setQuantity(fs.getRewardCount());
+                                return rewardInfo;
+                            },
+                            (existing, replacement) -> existing // 중복 시 기존 값 유지
+                    ));
 
-            return mapToDTO(payment, funding, selectedRewards);
+            return mapToDTO(payment, funding, rewardsMap);
         }).collect(Collectors.toList());
     }
 
@@ -132,6 +148,9 @@ public class PaymentService {
             throw new RuntimeException("결제를 삭제할 권한이 없습니다.");
         }
 
+        // funding_support에서 참조하는 레코드 삭제
+        fundingSupportRepository.deleteByPaymentId(paymentId);
+
         // PaymentHistory 삭제
         paymentHistoryRepository.deleteByPayment(payment);
 
@@ -142,7 +161,7 @@ public class PaymentService {
         paymentRepository.delete(payment);
     }
 
-    private PaymentDTO mapToDTO(Payment payment, Funding funding, List<Reward> rewards) {
+    private PaymentDTO mapToDTO(Payment payment, Funding funding, Map<Integer, PaymentDTO.RewardInfo> rewardsMap) {
         PaymentDTO dto = new PaymentDTO();
         dto.setId(payment.getId());
         dto.setUserId(payment.getUser().getId());
@@ -156,19 +175,8 @@ public class PaymentService {
         dto.setAddressId(payment.getAddress().getId());
         dto.setFundingId(funding.getId());
 
-        // 선택된 리워드를 Map 형식으로 변환
-        dto.setRewards(
-                rewards.stream()
-                        .collect(Collectors.toMap(
-                                Reward::getId,
-                                reward -> {
-                                    PaymentDTO.RewardInfo rewardInfo = new PaymentDTO.RewardInfo();
-                                    rewardInfo.setRewardId(reward.getId());
-                                    rewardInfo.setRewardName(reward.getRewardName());
-                                    return rewardInfo;
-                                }
-                        ))
-        );
+        // Reward 정보 추가 (Map 사용)
+        dto.setRewards(rewardsMap);
 
         // PaymentMethod 정보 추가
         PaymentMethod paymentMethod = paymentMethodRepository.findByPayment(payment)
@@ -184,6 +192,4 @@ public class PaymentService {
 
         return dto;
     }
-
-
 }

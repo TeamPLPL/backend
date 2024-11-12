@@ -10,4 +10,7 @@ import java.util.List;
 public interface FundingSupportRepository extends JpaRepository<FundingSupport, Integer> {
     List<FundingSupport> findByFundingId(int fundingId);
     List<FundingSupport> findAllByRewardId(int rewardId);
+
+    List<FundingSupport> findByFundingIdAndUserIdAndPaymentId(int fundingId, int userId, int paymentId);
+    void deleteByPaymentId(int paymentId);  // 새로운 삭제 메서드
 }

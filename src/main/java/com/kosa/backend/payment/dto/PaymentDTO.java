@@ -1,11 +1,13 @@
 package com.kosa.backend.payment.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.kosa.backend.config.RewardMapDeserializer;
+import com.kosa.backend.config.RewardMapSerializer;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 public class PaymentDTO {
@@ -29,12 +31,14 @@ public class PaymentDTO {
     private int addressId;
     private int fundingId; // 추가: 관련된 Funding ID
 
-    // 선택된 리워드 ID와 정보 포함
-    private Map<Integer, RewardInfo> rewards = Collections.emptyMap();
+    @JsonSerialize(using = RewardMapSerializer.class)
+    @JsonDeserialize(using = RewardMapDeserializer.class)
+    private Map<Integer, RewardInfo> rewards;
 
     @Data
     public static class RewardInfo {
         private int rewardId;
         private String rewardName;
+        private int quantity;
     }
 }
