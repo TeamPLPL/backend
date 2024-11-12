@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -45,8 +46,8 @@ public class Payment extends Auditable {
     @JoinColumn(name = "coupon_id")
     private Coupon coupon;
 
-    @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL)
-    private List<PaymentHistory> paymentHistory;
+    @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PaymentHistory> paymentHistory = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "address_id", nullable = false)

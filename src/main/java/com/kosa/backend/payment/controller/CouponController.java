@@ -25,14 +25,14 @@ public class CouponController {
 
     // 특정 유저의 쿠폰 조회
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Coupon>> getCouponsByUserId(@PathVariable int userId) {
+    public ResponseEntity<List<Coupon>> getCouponsByUserId(@PathVariable("userId") int userId) {
         List<Coupon> coupons = couponService.getCouponsByUserId(userId);
         return ResponseEntity.ok(coupons);
     }
 
     // 쿠폰 삭제
     @DeleteMapping("/delete/{couponId}")
-    public ResponseEntity<Void> deleteCoupon(@PathVariable int couponId) {
+    public ResponseEntity<Void> deleteCoupon(@PathVariable("couponId") int couponId) {
         couponService.deleteCoupon(couponId);
         return ResponseEntity.noContent().build();
     }
