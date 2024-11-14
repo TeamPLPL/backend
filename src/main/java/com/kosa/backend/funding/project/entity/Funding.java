@@ -17,6 +17,7 @@ import java.util.List;
 @Getter
 @Builder
 @AllArgsConstructor
+@ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "FUNDING")
 public class Funding extends Auditable {
@@ -24,44 +25,44 @@ public class Funding extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String fundingTitle;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private int targetAmount;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private int currentAmount;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private int complaintCount;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDateTime fundingStartDate;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDateTime fundingEndDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = true)
     private MakerType makerType;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String repName;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String repEmail;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = true, columnDefinition = "TEXT")
     private String fundingExplanation;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String fundingTag;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private boolean saveStatus;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private boolean isPublished;
 
     private LocalDateTime publishDate;
@@ -71,7 +72,7 @@ public class Funding extends Auditable {
     private SubCategory subCategory;
 
     @ManyToOne
-    @JoinColumn(name = "maker_id", nullable = false)
+    @JoinColumn(name = "maker_id", nullable = true)
     private Maker maker;
 
     @OneToOne(cascade = CascadeType.REMOVE)

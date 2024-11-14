@@ -1,6 +1,6 @@
 package com.kosa.backend.funding.project.controller;
 
-import com.kosa.backend.funding.project.dto.requestdto.RequestProjectInfoDTO;
+import com.kosa.backend.funding.project.dto.responsedto.ResponseProjectInfoDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectIntroDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectScheduleDTO;
 import com.kosa.backend.funding.project.service.ProjectService;
@@ -9,7 +9,9 @@ import com.kosa.backend.user.entity.Maker;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.service.MakerService;
 import com.kosa.backend.user.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -77,8 +79,8 @@ public class ProjectApiController {
     }
 
     // 프로젝트 생성 - 정보 입력 컨트롤러
-    @PostMapping("/studio/{id}/screening")
-    public ResponseEntity<?> screening(@RequestBody RequestProjectInfoDTO projectInfoDTO
+    @PostMapping("/studio/{id}/info")
+    public ResponseEntity<?> info(@RequestBody ResponseProjectInfoDTO projectInfoDTO
             , @PathVariable(name = "id") int projectId) {
         int updatedProjectId = projectService.updateInfo(projectInfoDTO, projectId);
 
@@ -87,8 +89,39 @@ public class ProjectApiController {
 
         return ResponseEntity.ok()
                 .body(response);
-
     }
+
+    // 컨트롤러 메서드 작성
+    @GetMapping("/studio/{id}/info")
+    public ResponseEntity<?> screening(@PathVariable(name = "id") int projectId) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // 서비스에서 프로젝트 정보를 가져옴
+            ResponseProjectInfoDTO projectInfo = projectService.getInfo(projectId);
+
+            // 가져온 데이터를 응답에 추가
+            response.put("success", true);
+            response.put("projectInfo", projectInfo);
+
+            System.out.println(projectInfo.toString());
+
+            return ResponseEntity.ok(response);
+        } catch (EntityNotFoundException e) {
+            // 프로젝트 정보를 찾지 못한 경우
+            response.put("success", false);
+            response.put("message", "Project not found with id: " + projectId);
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (Exception e) {
+            // 기타 예외 처리
+            response.put("success", false);
+            response.put("message", "An error occurred while retrieving the project information.");
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
 
     @GetMapping("/studio/{id}/delete")
     public ResponseEntity<?> delete(@PathVariable(name = "id") int projectId) {
