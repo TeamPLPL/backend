@@ -1,13 +1,12 @@
-package com.kosa.backend.funding.project.dto.requestdto;
+package com.kosa.backend.funding.project.dto.responsedto;
 
-import com.kosa.backend.funding.project.entity.enums.MakerType;
 import lombok.*;
 
 @Data
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Builder
 @AllArgsConstructor
-public class RequestProjectInfoDTO {
+public class ResponseProjectInfoDTO {
     // 메이켜 유형
     String makerType;
     // 대표자 이름, 이메일

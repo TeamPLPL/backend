@@ -39,25 +39,12 @@ public class RequestProjectDTO {
 
     public static Funding toSaveEntity(Maker maker) {
         return Funding.builder()
-                .fundingTitle("제목")
                 .targetAmount(0)
                 .currentAmount(0)
                 .complaintCount(0)
-                .fundingStartDate(LocalDateTime.now())
-                .fundingEndDate(LocalDateTime.now().plusDays(30))
-                .makerType(MakerType.personal)
-                .repName("대표자 성함")
-                .repEmail("none@gmail.com")
-                .fundingExplanation("내용")
-                .fundingTag("태그")
-//                .saveStatus(false)
+                .saveStatus(false)
                 .isPublished(false)
-                .publishDate(LocalDateTime.now())
                 .maker(maker)
-                .businessMaker(null)
-                .personalMaker(null)
-                .subCategory(null)
                 .build();
-
     }
 }
