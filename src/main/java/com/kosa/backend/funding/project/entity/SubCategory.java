@@ -2,10 +2,7 @@ package com.kosa.backend.funding.project.entity;
 
 import com.kosa.backend.common.entity.Auditable;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Setter
