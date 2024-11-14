@@ -2,10 +2,7 @@ package com.kosa.backend.funding.project.service;
 
 import com.kosa.backend.common.entity.Const;
 import com.kosa.backend.common.service.S3Service;
-import com.kosa.backend.funding.project.dto.FundingDTO;
-import com.kosa.backend.funding.project.dto.FundingWithSupporterCntDTO;
-import com.kosa.backend.funding.project.dto.MainCategoryDTO;
-import com.kosa.backend.funding.project.dto.SubCategoryDTO;
+import com.kosa.backend.funding.project.dto.*;
 import com.kosa.backend.funding.project.entity.Funding;
 import com.kosa.backend.funding.project.entity.MainCategory;
 import com.kosa.backend.funding.project.entity.SubCategory;
@@ -13,8 +10,11 @@ import com.kosa.backend.funding.project.repository.FundingRepository;
 import com.kosa.backend.funding.project.repository.MainCategoryRepository;
 import com.kosa.backend.funding.project.repository.SubCategoryRepository;
 import com.kosa.backend.funding.support.entity.FundingSupport;
+import com.kosa.backend.funding.support.repository.FollowRepository;
 import com.kosa.backend.funding.support.repository.FundingSupportRepository;
 import com.kosa.backend.funding.support.repository.WishlistRepository;
+import com.kosa.backend.user.dto.FundingMakerDTO;
+import com.kosa.backend.user.entity.Maker;
 import com.kosa.backend.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -36,6 +36,7 @@ public class FundingService {
     private final FundingRepository fundingRepository;
     private final FundingSupportRepository fundingSupportRepository;
     private final WishlistRepository wishlistRepository;
+    private final FollowRepository followRepository;
 
     // 메인 카테고리 리스트 조회
     public List<MainCategoryDTO> getMainCategories() {
@@ -167,5 +168,58 @@ public class FundingService {
                 .count();
 
         return supporterCnt;
+    }
+
+    public FundingDataDTO getFundingData(int userId, int fundingId) {
+        Optional<Funding> optFunding = fundingRepository.findById(fundingId);
+        if(optFunding.isEmpty()) { return null; }
+
+        Funding funding = optFunding.get();
+
+        double achievementRate = CommonUtils.calculateAchievementRate(funding.getCurrentAmount(), funding.getTargetAmount());
+
+        int subCategoryId = funding.getSubCategory().getId();
+        SubCategory subCategory = subCategoryRepository.findById(subCategoryId).orElseThrow(() ->
+                new IllegalArgumentException("서브 카테고리를 찾을 수 없습니다. ID: " + subCategoryId));
+
+        Maker maker = funding.getMaker();
+        String makerProfileImgUrl = s3Service.getProfileImgByUserId(maker.getUser().getId());
+
+        boolean isFollowing;
+        if(userId < 1) { isFollowing = false; }
+        else { isFollowing = followRepository.existsByFollowedUserIdAndFollowingUserId(maker.getId(), userId); }
+
+        FundingMakerDTO fmDTO = FundingMakerDTO.builder()
+                .makerId(maker.getId())
+                .userId(maker.getUser().getId())
+                .userContent(maker.getUserContent())
+                .userNick(maker.getUser().getUserNick())
+                .profileImgUrl(makerProfileImgUrl)
+                .isFollowing(isFollowing)
+                .build();
+
+        boolean isWishlist;
+        if(userId < 1) { isWishlist = false; }
+        else { isWishlist = wishlistRepository.existsByUserIdAndFundingId(userId, funding.getId()); }
+
+        FundingDataDTO fdDTO = FundingDataDTO.builder()
+                .fundingId(funding.getId())
+                .fundingTitle(funding.getFundingTitle())
+                .currentAmount(funding.getCurrentAmount())
+                .targetAmount(funding.getTargetAmount())
+                .achievementRate(achievementRate)
+                .supportCnt(getFundingSupportUserCounts(funding.getId()))
+                .fundingTag(funding.getFundingTag())
+                .fundingStartDate(funding.getFundingStartDate())
+                .fundingEndDate(funding.getFundingEndDate())
+                .mainCategoryId(subCategory.getMainCategory().getId())
+                .subCategoryId(subCategoryId)
+                .mainCategoryNm(subCategory.getMainCategory().getMainCategoryName())
+                .subCategoryNm(subCategory.getSubCategoryName())
+                .isWishlist(isWishlist)
+                .makerDTO(fmDTO)
+                .build();
+
+        return fdDTO;
     }
 }

@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WishlistRepository extends JpaRepository<Wishlist, Integer> {
     int countByFunding(Funding funding);
+    boolean existsByUserIdAndFundingId(Integer userId, Integer fundingId);
 }

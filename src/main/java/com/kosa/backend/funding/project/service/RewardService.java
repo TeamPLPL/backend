@@ -19,8 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -125,14 +123,20 @@ public class RewardService {
         if(rewardList.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
+
+        // 후원 개수 구하기
+        int supportedCnt = fundingSupportRepository.countByFundingId(fundingId);
+
         List<RewardDTO> rewardDTOList = new ArrayList<>();
         for(Reward reward : rewardList) {
             RewardDTO rDTO = RewardDTO.builder()
                     .rewardId(reward.getId())
                     .rewardName(reward.getRewardName())
                     .price(reward.getPrice())
+                    .explanation(reward.getExplanation())
                     .deliveryStartDate(reward.getDeliveryStartDate())
                     .deliveryFee(reward.getDeliveryFee())
+                    .supportedCnt(supportedCnt)
                     .build();
             rewardDTOList.add(rDTO);
         }

@@ -61,6 +61,7 @@ public class RewardApiController {
 //                .body(response);
 //    }
 
+    // 후원할 리워드 리스트 반환
     // 매개변수: rewardDTO 안에 rewardId, count 담긴 List
     // rewardDTOList와 deliveryFee 담긴 RewardResponseDTO 담긴 ResponseEntity 반환
     @PostMapping("/reward-list")
