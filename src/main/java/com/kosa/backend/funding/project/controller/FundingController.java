@@ -43,5 +43,7 @@ public class FundingController {
     }
 
     @GetMapping("/fundinglist/top")
-    public ResponseEntity<List<FundingDTO>> getTopFundingList() { return fundingService.getTopFundingList(); }
+    public ResponseEntity<List<FundingDTO>> getTopFundingList() {
+        return fundingService.getTopFundingList();
+    }
 }

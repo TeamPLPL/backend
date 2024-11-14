@@ -3,6 +3,7 @@ package com.kosa.backend.funding.project.service;
 import com.kosa.backend.common.entity.Const;
 import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.funding.project.dto.FundingDTO;
+import com.kosa.backend.funding.project.dto.FundingWithSupporterCntDTO;
 import com.kosa.backend.funding.project.dto.MainCategoryDTO;
 import com.kosa.backend.funding.project.dto.SubCategoryDTO;
 import com.kosa.backend.funding.project.entity.Funding;
@@ -67,18 +68,53 @@ public class FundingService {
     // 최신순 펀딩 리스트 조회 (8개)
     public ResponseEntity<List<FundingDTO>> getNewFundingList() {
         PageRequest pageRequest = PageRequest.of(0, Const.NEW_FUNDINGLIST_CNT, Sort.by(Sort.Direction.DESC, "publishDate"));
-        List<Funding> newFundingList = fundingRepository.findTopByOrderByPublishDateDesc(pageRequest);
+        List<Funding> newFundingList = fundingRepository.findAllByOrderByPublishDateDesc(pageRequest);
         return convertToFundingDTOList(newFundingList);
     }
 
+    // 인기순 펀딩 리스트 조회 (5개)
     public ResponseEntity<List<FundingDTO>> getTopFundingList() {
-
         LocalDateTime currentDate = LocalDateTime.now();
-        PageRequest pageRequest = PageRequest.of(0, Const.TOP_FUNDINGLIST_CNT);
+        // 현재 펀딩 진행중인 모든 펀딩 찾기
+        List<Integer> currentFundingIdList = fundingRepository.findAllCurrentFundingIds(currentDate);
 
-        List<Funding> topFundingList = fundingRepository.findTopFundingsWithSupporterCount(pageRequest, currentDate);
+        // fundingId별 supporter count 정리
+        Map<Integer, Integer> supporterCntByFundingId = new HashMap<>();
+        for(int fundingId : currentFundingIdList) {
+            int supporterCnt = getFundingSupportUserCounts(fundingId);
+            supporterCntByFundingId.put(fundingId, supporterCnt);
+        }
 
-        return convertToFundingDTOList(topFundingList);
+        // 정렬 로직
+        List<Map.Entry<Integer, Integer>> sortedList = new ArrayList<>(supporterCntByFundingId.entrySet());
+        sortedList.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+
+        Map<Integer, Integer> sortedSupporterCntByFundingId = new LinkedHashMap<>();
+        for (Map.Entry<Integer, Integer> entry : sortedList) {
+            sortedSupporterCntByFundingId.put(entry.getKey(), entry.getValue());
+        }
+
+        // n개의 상위 항목을 저장할 새로운 Map 생성
+        List<Integer> topNFundingIdList = new ArrayList<>();
+
+        // sortedSupporterCntByFundingId에서 앞에서부터 n개 항목 추출
+        int count = 0;
+
+        for (Map.Entry<Integer, Integer> entry : sortedSupporterCntByFundingId.entrySet()) {
+            if (count >= Const.TOP_FUNDINGLIST_CNT) {
+                break; // n개를 추출했으면 반복 중단
+            }
+            topNFundingIdList.add(entry.getKey());
+            count++;
+        }
+
+        List<Funding> topNFundingList = new ArrayList<>();
+        // 인기순 5개 리스트에 담아서 보내기
+        for(int fundingId : topNFundingIdList) {
+            topNFundingList.add(fundingRepository.findById(fundingId).get());
+        }
+
+        return convertToFundingDTOList(topNFundingList);
     }
 
     // Funding -> FundingDTO 변환 메소드
@@ -92,11 +128,13 @@ public class FundingService {
 
         double achieveRate = CommonUtils.calculateAchievementRate(funding.getCurrentAmount(), funding.getTargetAmount());
 
+        int supportCnt = getFundingSupportUserCounts(funding.getId());
+
         return FundingDTO.builder()
                 .id(funding.getId())
                 .fundingTitle(funding.getFundingTitle())
                 .makerNick(funding.getMaker().getUser().getUserNick())
-                .supportCnt(getFundingSupportUserCounts(funding))
+                .supportCnt(supportCnt)
                 .achievementRate(achieveRate)
                 .wishlistCnt(wishlistRepository.countByFunding(funding))
                 .thumbnailImgUrl(thumbnailImgUrl)
@@ -106,20 +144,22 @@ public class FundingService {
     // FundingList -> FundingDTOList 변환 메소드
     public ResponseEntity<List<FundingDTO>> convertToFundingDTOList(List<Funding> fundingList) {
         if(fundingList == null || fundingList.isEmpty()) {
+            System.out.println("converToFundingDTOList 시 fundingList가 비어있음");
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         List<FundingDTO> fundingDTOList = new ArrayList<>();
         for(Funding funding : fundingList) {
+            System.out.println("fundingList의 funding값: "+funding);
             fundingDTOList.add(convertToFundingDTO(funding));
         }
         return ResponseEntity.ok(fundingDTOList);
     }
 
     // 펀딩 참여자 수 계산 메소드
-    public int getFundingSupportUserCounts(Funding funding) {
-        if(funding == null) { return Const.NULL; }
+    public int getFundingSupportUserCounts(int fundingId) {
+        if(fundingId < 1) { return Const.NULL; }
 
-        List<FundingSupport> supports = fundingSupportRepository.findByFundingId(funding.getId());
+        List<FundingSupport> supports = fundingSupportRepository.findByFundingId(fundingId);
 
         int supporterCnt = (int) supports.stream()
                 .map(support -> support.getUser().getId())
