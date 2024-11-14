@@ -118,4 +118,25 @@ public class RewardService {
         }
         return false;
     }
+
+    // 펀딩Id별 리워드 전체 리스트 반환하는 메소드
+    public ResponseEntity<List<RewardDTO>> getAllRewardDTOList(int fundingId) {
+        List<Reward> rewardList = rewardRepository.findAllByFundingId(fundingId);
+        if(rewardList.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        List<RewardDTO> rewardDTOList = new ArrayList<>();
+        for(Reward reward : rewardList) {
+            RewardDTO rDTO = RewardDTO.builder()
+                    .rewardId(reward.getId())
+                    .rewardName(reward.getRewardName())
+                    .price(reward.getPrice())
+                    .deliveryStartDate(reward.getDeliveryStartDate())
+                    .deliveryFee(reward.getDeliveryFee())
+                    .build();
+            rewardDTOList.add(rDTO);
+        }
+
+        return ResponseEntity.ok(rewardDTOList);
+    }
 }

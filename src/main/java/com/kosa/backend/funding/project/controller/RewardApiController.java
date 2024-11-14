@@ -69,4 +69,9 @@ public class RewardApiController {
         return rewardService.getRewardDTOList(rewardDTOList);
     }
 
+    @GetMapping("/reward-list/all/{id}")
+    public ResponseEntity<List<RewardDTO>> getAllRewardDTOList(@PathVariable(name = "id") int fundingId) {
+
+        return rewardService.getAllRewardDTOList(fundingId);
+    }
 }

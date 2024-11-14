@@ -14,6 +14,7 @@ public class RewardDTO {
     private String rewardName;
     private int price;
     private LocalDateTime deliveryStartDate;
+    private int deliveryFee;
 
     private int count;
 }
