@@ -20,11 +20,4 @@ public class SubCategory extends Auditable {
     @ManyToOne
     @JoinColumn(name = "main_category_id", nullable = false)
     private MainCategory mainCategory;
-
-    public static SubCategory of(MainCategory mainCategory, String subCategoryName) {
-        SubCategory subCategory = new SubCategory();
-        subCategory.setMainCategory(mainCategory);
-        subCategory.setSubCategoryName(subCategoryName);
-        return subCategory;
-    }
 }

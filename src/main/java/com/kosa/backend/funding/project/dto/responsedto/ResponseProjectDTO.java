@@ -1,22 +1,28 @@
-package com.kosa.backend.funding.project.dto.requestdto;
+package com.kosa.backend.funding.project.dto.responsedto;
 
+import com.kosa.backend.common.entity.Files;
+import com.kosa.backend.funding.project.dto.*;
 import com.kosa.backend.funding.project.entity.BusinessMaker;
-import com.kosa.backend.funding.project.entity.Funding;
 import com.kosa.backend.funding.project.entity.PersonalMaker;
+import com.kosa.backend.funding.project.entity.Reward;
 import com.kosa.backend.funding.project.entity.SubCategory;
 import com.kosa.backend.funding.project.entity.enums.MakerType;
+import com.kosa.backend.funding.support.entity.FundingSupport;
+import com.kosa.backend.user.dto.MakerDTO;
 import com.kosa.backend.user.entity.Maker;
-import com.kosa.backend.user.entity.User;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
-public class RequestProjectDTO {
+public class ResponseProjectDTO {
     private int id;
     private String fundingTitle;
     private int targetAmount;
@@ -24,7 +30,7 @@ public class RequestProjectDTO {
     private int complaintCount;
     private LocalDateTime fundingStartDate;
     private LocalDateTime fundingEndDate;
-    private MakerType makerType;
+    private String makerType;
     private String repName;
     private String repEmail;
     private String fundingExplanation;
@@ -32,19 +38,11 @@ public class RequestProjectDTO {
     private boolean saveStatus;
     private boolean isPublished;
     private LocalDateTime publishDate;
-    private Maker maker;
-    private BusinessMaker businessMaker;
-    private PersonalMaker personalMaker;
-    private SubCategory subCategory;
-
-    public static Funding toSaveEntity(Maker maker) {
-        return Funding.builder()
-                .targetAmount(0)
-                .currentAmount(0)
-                .complaintCount(0)
-                .saveStatus(false)
-                .isPublished(false)
-                .maker(maker)
-                .build();
-    }
+    private SubCategoryDTO subCategory;
+    private MakerDTO maker;
+    private BusinessMakerDTO businessMaker;
+    private PersonalMakerDTO personalMaker;
+    List<RewardDTO> rewards;
+    private List<RewardInfoDTO> rewardInfo;
+    List<FilesDTO> files;
 }

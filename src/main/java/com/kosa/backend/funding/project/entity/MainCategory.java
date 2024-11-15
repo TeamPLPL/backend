@@ -24,10 +24,4 @@ public class MainCategory extends Auditable {
     @OneToMany(mappedBy = "mainCategory", cascade = CascadeType.ALL)
     private List<SubCategory> subCategory;
 
-    // 정적 팩토리 메서드
-    public static MainCategory of(String mainCategoryName) {
-        MainCategory mainCategory = new MainCategory();
-        mainCategory.setMainCategoryName(mainCategoryName);
-        return mainCategory;
-    }
 }

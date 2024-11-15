@@ -6,7 +6,7 @@ import lombok.*;
 @Data
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class RequestRewardInfoDTO {
     private String modelName;
     private String productMaterial;
