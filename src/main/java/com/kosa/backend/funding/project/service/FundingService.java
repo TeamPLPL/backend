@@ -16,6 +16,7 @@ import com.kosa.backend.funding.support.repository.WishlistRepository;
 import com.kosa.backend.user.dto.FundingMakerDTO;
 import com.kosa.backend.user.entity.Maker;
 import com.kosa.backend.util.CommonUtils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -145,12 +146,10 @@ public class FundingService {
     // FundingList -> FundingDTOList 변환 메소드
     public ResponseEntity<List<FundingDTO>> convertToFundingDTOList(List<Funding> fundingList) {
         if(fundingList == null || fundingList.isEmpty()) {
-            System.out.println("converToFundingDTOList 시 fundingList가 비어있음");
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         List<FundingDTO> fundingDTOList = new ArrayList<>();
         for(Funding funding : fundingList) {
-            System.out.println("fundingList의 funding값: "+funding);
             fundingDTOList.add(convertToFundingDTO(funding));
         }
         return ResponseEntity.ok(fundingDTOList);
