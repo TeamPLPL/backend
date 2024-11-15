@@ -169,7 +169,6 @@ public class FundingService {
         return supporterCnt;
     }
 
-    @Transactional
     public FundingDataDTO getFundingData(int userId, int fundingId) {
         Optional<Funding> optFunding = fundingRepository.findById(fundingId);
         if(optFunding.isEmpty()) { return null; }
