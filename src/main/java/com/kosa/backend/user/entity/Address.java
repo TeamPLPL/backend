@@ -33,6 +33,9 @@ public class Address extends Auditable {
     @Column(nullable = false)
     private String detailAddr;
 
+    // 주소추가항목
+    private String extraAddr;
+
     // 기본 주소 여부
     @Column(nullable = false)
     private boolean isDefault;
