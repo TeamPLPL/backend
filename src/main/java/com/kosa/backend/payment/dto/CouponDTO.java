@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class CouponDTO {
+    private int id;
     private String couponName;
     private int discountRate;
     private LocalDateTime issueDate;
