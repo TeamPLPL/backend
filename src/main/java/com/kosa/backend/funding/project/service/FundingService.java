@@ -16,7 +16,9 @@ import com.kosa.backend.funding.support.repository.WishlistRepository;
 import com.kosa.backend.user.dto.FundingMakerDTO;
 import com.kosa.backend.user.entity.Maker;
 import com.kosa.backend.util.CommonUtils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -145,12 +147,10 @@ public class FundingService {
     // FundingList -> FundingDTOList 변환 메소드
     public ResponseEntity<List<FundingDTO>> convertToFundingDTOList(List<Funding> fundingList) {
         if(fundingList == null || fundingList.isEmpty()) {
-            System.out.println("converToFundingDTOList 시 fundingList가 비어있음");
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         List<FundingDTO> fundingDTOList = new ArrayList<>();
         for(Funding funding : fundingList) {
-            System.out.println("fundingList의 funding값: "+funding);
             fundingDTOList.add(convertToFundingDTO(funding));
         }
         return ResponseEntity.ok(fundingDTOList);
@@ -210,6 +210,7 @@ public class FundingService {
                 .achievementRate(achievementRate)
                 .supportCnt(getFundingSupportUserCounts(funding.getId()))
                 .fundingTag(funding.getFundingTag())
+                .fundingExplanation(funding.getFundingExplanation())
                 .fundingStartDate(funding.getFundingStartDate())
                 .fundingEndDate(funding.getFundingEndDate())
                 .mainCategoryId(subCategory.getMainCategory().getId())
@@ -222,4 +223,22 @@ public class FundingService {
 
         return fdDTO;
     }
+
+    public FundingImgListDTO getFundingImgList(int fundingId) {
+        String thumbnailUrl = s3Service.getThumbnailByFundingId(fundingId);
+        List<String> detailImgUrlList = s3Service.getDetailImgListByFundingId(fundingId);
+        return FundingImgListDTO.builder()
+                .thumbnailImgUrl(thumbnailUrl)
+                .detailImgUrlList(detailImgUrlList)
+                .build();
+    }
+
+//    public Page<FundingDTO> searchByContent(String content, int page, int size){
+//        // null 에러 방지용 초기화
+//        if(content == null) content = "";
+//
+//        PageRequest pageRequest = PageRequest.of(page - 1, size, Sort.by("questionId").descending());
+//        Page<Question> byTitleContaining = questionRepository.findByTitleContaining(title, pageRequest);
+//        return byTitleContaining;
+//    }
 }

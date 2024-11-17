@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface RewardInfoRepository extends JpaRepository<RewardInfo, Integer> {
     List<RewardInfo> findByFunding(Funding funding);
+    RewardInfo findByFundingId(int fundingId);
 }

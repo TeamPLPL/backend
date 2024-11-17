@@ -20,6 +20,7 @@ public class RewardInfoDTO {
     private String manufacturingCountry;
     private String manufactureDate;
     private String refundsPolicies;
+
     private int fundingId; // Funding 엔터티와의 관계를 ID로 표현
 
     public static RewardInfoDTO fromEntity(RewardInfo rewardInfo) {

@@ -1,9 +1,6 @@
 package com.kosa.backend.funding.project.controller;
 
-import com.kosa.backend.funding.project.dto.FundingDTO;
-import com.kosa.backend.funding.project.dto.FundingDataDTO;
-import com.kosa.backend.funding.project.dto.MainCategoryDTO;
-import com.kosa.backend.funding.project.dto.SubCategoryDTO;
+import com.kosa.backend.funding.project.dto.*;
 import com.kosa.backend.funding.project.service.FundingService;
 import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.entity.User;
@@ -18,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/funding")
+@RequestMapping("/api/funding")
 public class FundingController {
 
     private final FundingService fundingService;
@@ -66,4 +63,20 @@ public class FundingController {
 
         return ResponseEntity.ok(fdDTO);
     }
+
+    @PostMapping("/funding-imgs/{id}")
+    public ResponseEntity<FundingImgListDTO> getFundingImgList(@PathVariable(name="id") Integer fundingId) {
+        return ResponseEntity.ok(fundingService.getFundingImgList(fundingId));
+    }
+
+//    @GetMapping("/search")
+//    public ResponseEntity<List<FundingDTO>> searchTitle(@RequestParam(value ="content",required = false) String content,
+//                                      @RequestParam(value="page", defaultValue="0") @Positive int page,
+//                                      @RequestParam @Positive int size){
+//
+//        Page<FundingDTO> pageFundingList = fundingService.searchByContent(content, page, size);
+//        List<FundingDTO> questions = pageQuestions.getContent();
+//
+//        return null;
+//    }
 }

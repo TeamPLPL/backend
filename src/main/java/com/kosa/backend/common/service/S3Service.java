@@ -141,7 +141,9 @@ public class S3Service {
     //////////////////
     // 편딩ID별 펀딩디테일이미지리스트 조회 메소드
     public List<String> getDetailImgListByFundingId(int fundingId) {
-        List<Files> detailImgList = filesRepository.findAllByFundingIdAndImgType(fundingId, ImgType.DETAIL_IMAGE);
+//        List<Files> detailImgList = filesRepository.findAllByFundingIdAndImgType(fundingId, ImgType.DETAIL_IMAGE);
+        List<Files> detailImgList = filesRepository.findAllByFundingIdAndImgTypeOrderBySequence(fundingId, ImgType.DETAIL_IMAGE);
+
         List<String> signedUrlList = new ArrayList<>();
         for (Files file : detailImgList) {
             String fullPath = file.getPath() + file.getSavedNm();

@@ -37,10 +37,14 @@ public class PaymentService {
     private final FundingSupportRepository fundingSupportRepository;
 
     @Transactional
-    public PaymentDTO createPayment(PaymentDTO paymentDTO) {
+    public PaymentDTO createPayment(PaymentDTO paymentDTO, User user) {
+
         // 사용자 조회
-        User user = userRepository.findById(paymentDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + paymentDTO.getUserId()));
+//        User user = userRepository.findById(paymentDTO.getUserId())
+//                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + paymentDTO.getUserId()));
+        if (user == null) {
+            throw new RuntimeException("인증된 사용자가 없습니다.");
+        }
 
         // 주소 조회
         Address address = addressRepository.findById(paymentDTO.getAddressId())
@@ -70,9 +74,14 @@ public class PaymentService {
         paymentMethod.setMethodType(paymentDTO.getMethodType());
         paymentMethod.setPayment(savedPayment);
 
-        if ("CARD".equals(paymentDTO.getMethodType())) {
+        if ("card".equals(paymentDTO.getMethodType())) {
+            if (paymentDTO.getCardNumber() == null || paymentDTO.getCardNumber().isEmpty()) {
+                throw new IllegalArgumentException("카드 결제 시 카드 번호가 필요합니다.");
+            }
             paymentMethod.setCardNumber(paymentDTO.getCardNumber());
         } else {
+            // Card number should remain null for non-CARD payments
+            paymentMethod.setCardNumber(null);
             paymentMethod.setThirdPartyId(paymentDTO.getThirdPartyId());
             paymentMethod.setThirdPartyPw(paymentDTO.getThirdPartyPw());
         }
@@ -137,6 +146,15 @@ public class PaymentService {
 
             return mapToDTO(payment, funding, rewardsMap);
         }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void updatePaymentStatus(int paymentId, String status) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("결제를 찾을 수 없습니다: " + paymentId));
+
+        payment.setStatus(PaymentStatus.valueOf(status)); // Enum으로 상태 설정
+        paymentRepository.save(payment);
     }
 
     @Transactional
