@@ -22,11 +22,9 @@ public class RequestProjectInfoDTO {
 
     // 사업자 신분증
     String businessRegistNum;
-    String businessRegistCertif;
+    /*String businessRegistCertif;*/
     String companyName;
 
-    // 목표 금액
-    int targetAmount;
     // 펀딩 설명
     String fundingExplanation;
     // 펀딩 태그

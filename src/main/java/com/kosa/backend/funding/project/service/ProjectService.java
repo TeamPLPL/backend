@@ -113,7 +113,7 @@ public class ProjectService {
 
         // Files 불러오기
         Files thumbnail = filesRepository.findByFundingIdAndImgType(funding.getId(), ImgType.THUMBNAIL).orElse(null);
-        List<Files> filesList = filesRepository.findAllByFundingIdAndImgType(funding.getId(), ImgType.DETAIL_IMAGE);
+        List<Files> filesList = filesRepository.findAllByFundingIdAndImgTypeOrderBySequence(funding.getId(), ImgType.DETAIL_IMAGE);
         List<FilesDTO> filesDTOList = new ArrayList<>();
         filesDTOList.add(FilesDTO.fromEntity(thumbnail));
         for(Files file : filesList) {
@@ -152,11 +152,6 @@ public class ProjectService {
         }
         if(projectInfoDTO.getRepEmail()!=null&&!projectInfoDTO.getRepEmail().equals("")){
             funding.updateRepEmail(projectInfoDTO.getRepEmail());
-        }
-
-        // 3. 필요한 필드(목표 금액)만 업데이트
-        if(projectInfoDTO.getTargetAmount()!=0){
-            funding.updateTargetAmount(projectInfoDTO.getTargetAmount());
         }
 
         // 4. 필요한 필드(펀딩 설명)만 업데이트
@@ -254,7 +249,7 @@ public class ProjectService {
 
                 BusinessMakerDTO businessMakerDTO = BusinessMakerDTO.builder()
                         .businessRegistNum(projectInfoDTO.getBusinessRegistNum())
-                        .businessRegistCertif(projectInfoDTO.getBusinessRegistCertif())
+//                        .businessRegistCertif(projectInfoDTO.getBusinessRegistCertif())
                         .companyName(projectInfoDTO.getCompanyName())
                         .build();
 

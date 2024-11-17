@@ -17,13 +17,13 @@ public class BusinessMaker extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String businessRegistNum;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String businessRegistCertif;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String companyName;
 
     @OneToOne(mappedBy = "businessMaker", cascade = CascadeType.ALL)

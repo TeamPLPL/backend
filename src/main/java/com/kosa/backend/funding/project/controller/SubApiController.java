@@ -49,7 +49,7 @@ public class SubApiController {
     }
 
     @PostMapping("/{projectId}/thumbnail")
-    public ResponseEntity<?> uploadUserProfileImg(@AuthenticationPrincipal CustomUserDetails cud,
+    public ResponseEntity<?> uploadThubnail(@AuthenticationPrincipal CustomUserDetails cud,
                                                   @PathVariable(name = "projectId") int projectId,
                                                   @RequestParam("file") MultipartFile file) throws IOException {
         // 인증된 User 체크 메소드 따로 빼기
@@ -64,5 +64,19 @@ public class SubApiController {
         String thumbnail =  s3Service.getThumbnailByFundingId(projectId);
 
         return ResponseEntity.ok(thumbnail);
+    }
+
+    @PostMapping("/{projectId}/introductionimages")
+    public ResponseEntity<?> uploadImages(@AuthenticationPrincipal CustomUserDetails cud,
+                                                  @PathVariable(name = "projectId") int projectId,
+                                                  @RequestParam("file") MultipartFile file) throws IOException {
+        // 인증된 User 체크 메소드 따로 빼기
+        String userEmail = cud.getUsername();
+        User user = userService.getUser(userEmail);
+        if(user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return s3Service.uploadImgFile(user, file, ImgType.DETAIL_IMAGE, projectId);
     }
 }
