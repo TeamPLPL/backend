@@ -13,4 +13,5 @@ public interface PaymentHistoryRepository extends JpaRepository<PaymentHistory, 
 
     // 특정 Payment와 연관된 모든 PaymentHistory 조회
     List<PaymentHistory> findAllByPayment(Payment payment);
+    List<PaymentHistory> findByPayment_User_Id(int userId);
 }
