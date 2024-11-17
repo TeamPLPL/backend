@@ -5,4 +5,5 @@ import com.kosa.backend.funding.project.entity.RewardInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RewardInfoRepository extends JpaRepository<RewardInfo, Integer> {
+    RewardInfo findByFundingId(int fundingId);
 }

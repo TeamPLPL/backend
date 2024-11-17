@@ -1,6 +1,7 @@
 package com.kosa.backend.funding.project.controller;
 
 import com.kosa.backend.funding.project.dto.RewardDTO;
+import com.kosa.backend.funding.project.dto.RewardInfoDTO;
 import com.kosa.backend.funding.project.dto.RewardResponseDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestRewardDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestRewardInfoDTO;
@@ -74,5 +75,12 @@ public class RewardApiController {
     public ResponseEntity<List<RewardDTO>> getAllRewardDTOList(@PathVariable(name = "id") int fundingId) {
 
         return rewardService.getAllRewardDTOList(fundingId);
+    }
+
+    @GetMapping("/reward-policy/{id}")
+    public ResponseEntity<RewardInfoDTO> getRewardPolicy(@PathVariable(name = "id") int fundingId) {
+        RewardInfoDTO rewardInfoDTO = rewardService.getRewardInfoDTO(fundingId);
+        if(rewardInfoDTO == null) { return ResponseEntity.notFound().build(); }
+        return ResponseEntity.ok().body(rewardInfoDTO);
     }
 }

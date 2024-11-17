@@ -1,6 +1,7 @@
 package com.kosa.backend.funding.project.service;
 
 import com.kosa.backend.funding.project.dto.RewardDTO;
+import com.kosa.backend.funding.project.dto.RewardInfoDTO;
 import com.kosa.backend.funding.project.dto.RewardResponseDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestRewardDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestRewardInfoDTO;
@@ -142,5 +143,21 @@ public class RewardService {
         }
 
         return ResponseEntity.ok(rewardDTOList);
+    }
+
+    public RewardInfoDTO getRewardInfoDTO(int fundingId) {
+        RewardInfo rewardInfo = rewardInfoRepository.findByFundingId(fundingId);
+        if(rewardInfo == null) { return null; }
+
+        return RewardInfoDTO.builder()
+                .modelName(rewardInfo.getModelName())
+                .productMaterial(rewardInfo.getProductMaterial())
+                .color(rewardInfo.getColor())
+                .field(rewardInfo.getField())
+                .manufacturer(rewardInfo.getManufacturer())
+                .manufacturingCountry(rewardInfo.getManufacturingCountry())
+                .manufactureDate(rewardInfo.getManufactureDate())
+                .refundsPolicies(rewardInfo.getRefundsPolicies())
+                .build();
     }
 }

@@ -20,6 +20,7 @@ public class FundingDataDTO {
     private double achievementRate;
     private int supportCnt;
     private String fundingTag;
+    private String fundingExplanation;
 
     private LocalDateTime fundingStartDate;
     private LocalDateTime fundingEndDate;
