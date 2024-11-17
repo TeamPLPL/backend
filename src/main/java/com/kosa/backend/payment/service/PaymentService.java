@@ -1,5 +1,7 @@
 package com.kosa.backend.payment.service;
 
+import com.kosa.backend.funding.project.dto.FundingDTO;
+import com.kosa.backend.funding.project.dto.RewardDTO;
 import com.kosa.backend.funding.project.entity.Funding;
 import com.kosa.backend.funding.project.entity.Reward;
 import com.kosa.backend.funding.project.repository.FundingRepository;
@@ -7,14 +9,18 @@ import com.kosa.backend.funding.project.repository.RewardRepository;
 import com.kosa.backend.funding.support.entity.FundingSupport;
 import com.kosa.backend.funding.support.repository.FundingSupportRepository;
 import com.kosa.backend.payment.dto.PaymentDTO;
+import com.kosa.backend.payment.dto.PaymentDetailDTO;
 import com.kosa.backend.payment.entity.*;
 import com.kosa.backend.payment.entity.enums.PaymentStatus;
 import com.kosa.backend.payment.repository.*;
+import com.kosa.backend.user.dto.AddressDTO;
 import com.kosa.backend.user.entity.Address;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.repository.AddressRepository;
 import com.kosa.backend.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,6 +123,7 @@ public class PaymentService {
         return mapToDTO(savedPayment, funding, paymentDTO.getRewards());
     }
 
+    // 사용자별 거래 내역 조회
     @Transactional
     public List<PaymentDTO> getPaymentsByUserId(int userId) {
         List<Payment> payments = paymentRepository.findByUser_Id(userId);
@@ -148,6 +155,77 @@ public class PaymentService {
         }).collect(Collectors.toList());
     }
 
+    // 결제 id 별로 세부 내역 확인
+    @Transactional(readOnly = true)
+    public PaymentDetailDTO getPaymentDetailsByPaymentId(int paymentId) {
+        // Payment 가져오기
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("결제를 찾을 수 없습니다: " + paymentId));
+
+        // PaymentHistory 가져오기
+        PaymentHistory paymentHistory = paymentHistoryRepository.findByPayment(payment)
+                .orElseThrow(() -> new RuntimeException("결제 내역을 찾을 수 없습니다: " + paymentId));
+
+        // Funding 초기화
+        Funding funding = paymentHistory.getFunding();
+        Hibernate.initialize(funding.getMaker()); // Lazy 로딩 방지
+        Hibernate.initialize(funding.getSubCategory()); // Lazy 로딩 방지
+
+        // FundingDTO 생성
+        FundingDTO fundingDTO = FundingDTO.builder()
+                .id(funding.getId())
+                .fundingTitle(funding.getFundingTitle())
+                .makerNick(funding.getMaker().getUser().getUserNick())
+                .build();
+
+        // FundingSupport에서 Reward 정보 가져오기
+        List<FundingSupport> fundingSupports = fundingSupportRepository.findByFundingIdAndUserIdAndPaymentId(
+                funding.getId(), payment.getUser().getId(), payment.getId()
+        );
+
+        List<RewardDTO> rewardDTOs = fundingSupports.stream()
+                .map(fs -> RewardDTO.builder()
+                        .rewardId(fs.getReward().getId())
+                        .rewardName(fs.getReward().getRewardName())
+                        .price(fs.getReward().getPrice())
+                        .deliveryStartDate(fs.getReward().getDeliveryStartDate())
+                        .deliveryFee(fs.getReward().getDeliveryFee())
+                        .count(fs.getRewardCount())
+                        .build()
+                ).collect(Collectors.toList());
+
+        // AddressDTO 생성
+        AddressDTO addressDTO = AddressDTO.builder()
+                .id(payment.getAddress().getId())
+                .zonecode(payment.getAddress().getZonecode())
+                .addr(payment.getAddress().getAddr())
+                .addrEng(payment.getAddress().getAddrEng())
+                .detailAddr(payment.getAddress().getDetailAddr())
+                .extraAddr(payment.getAddress().getExtraAddr())
+                .isDefault(payment.getAddress().isDefault())
+                .userId(payment.getUser().getId())
+                .build();
+
+        // PaymentDetailDTO 생성
+        PaymentDetailDTO paymentDetailDTO = new PaymentDetailDTO();
+        paymentDetailDTO.setPaymentId(payment.getId());
+        paymentDetailDTO.setPaymentDate(payment.getPaymentDate());
+        paymentDetailDTO.setPaymentStatus(payment.getStatus().name());
+        paymentDetailDTO.setReceiverName(payment.getReceiverName());
+        paymentDetailDTO.setPhoneNum(payment.getPhoneNum());
+        paymentDetailDTO.setDeliveryRequest(payment.getDeliveryRequest());
+        paymentDetailDTO.setFundingStartDate(funding.getFundingStartDate());
+        paymentDetailDTO.setFundingEndDate(funding.getFundingEndDate());
+
+        paymentDetailDTO.setAddress(addressDTO);
+        paymentDetailDTO.setFunding(fundingDTO);
+        paymentDetailDTO.setRewards(rewardDTOs);
+
+        return paymentDetailDTO;
+    }
+
+
+    // 결제 상태 수정(거래 성공이나 취소 등의 여부에 따라 변경됨)
     @Transactional
     public void updatePaymentStatus(int paymentId, String status) {
         Payment payment = paymentRepository.findById(paymentId)
@@ -157,6 +235,7 @@ public class PaymentService {
         paymentRepository.save(payment);
     }
 
+    // 거래 내역 삭제(일정 기간이 지난 후 폐기하는 것을 고려할 것)
     @Transactional
     public void deletePaymentByUser(int paymentId, int userId) {
         Payment payment = paymentRepository.findById(paymentId)
