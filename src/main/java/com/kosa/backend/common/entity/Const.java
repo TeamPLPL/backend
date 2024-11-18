@@ -7,4 +7,6 @@ public class Const {
 
     public static final int TOP_FUNDINGLIST_CNT = 5;
     public static final int NEW_FUNDINGLIST_CNT = 8;
+
+    public static final int DEFAULT_PAGE_SIZE = 20;
 }

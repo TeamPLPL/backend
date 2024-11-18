@@ -9,24 +9,21 @@ import com.kosa.backend.funding.project.entity.SubCategory;
 import com.kosa.backend.funding.project.repository.FundingRepository;
 import com.kosa.backend.funding.project.repository.MainCategoryRepository;
 import com.kosa.backend.funding.project.repository.SubCategoryRepository;
-import com.kosa.backend.funding.support.entity.FundingSupport;
 import com.kosa.backend.funding.support.repository.FollowRepository;
 import com.kosa.backend.funding.support.repository.FundingSupportRepository;
 import com.kosa.backend.funding.support.repository.WishlistRepository;
 import com.kosa.backend.user.dto.FundingMakerDTO;
 import com.kosa.backend.user.entity.Maker;
 import com.kosa.backend.util.CommonUtils;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -97,7 +94,6 @@ public class FundingService {
             sortedSupporterCntByFundingId.put(entry.getKey(), entry.getValue());
         }
 
-        // n개의 상위 항목을 저장할 새로운 Map 생성
         List<Integer> topNFundingIdList = new ArrayList<>();
 
         // sortedSupporterCntByFundingId에서 앞에서부터 n개 항목 추출
@@ -143,6 +139,48 @@ public class FundingService {
                 .thumbnailImgUrl(thumbnailImgUrl)
                 .build();
     }
+//    public FundingDTO convertToFundingDTO(Funding funding) {
+//        String thumbnailImgUrl = null;
+//        try {
+//            thumbnailImgUrl = s3Service.getThumbnailByFundingId(funding.getId());
+//        } catch(Exception e) {
+//            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+//        }
+//        double achieveRate = CommonUtils.calculateAchievementRate(funding.getCurrentAmount(), funding.getTargetAmount());
+//
+//        return FundingDTO.builder()
+//                .id(funding.getId())
+//                .fundingTitle(funding.getFundingTitle())
+//                .makerNick(funding.getMaker().getUser().getUserNick())
+//                .supportCnt(0) // 초기값 설정, 실제 값은 나중에 설정됩니다.
+//                .achievementRate(achieveRate)
+//                .wishlistCnt(wishlistRepository.countByFunding(funding))
+//                .thumbnailImgUrl(thumbnailImgUrl)
+//                .build();
+//    }
+
+//    public FundingDTO convertToFundingDTO(Funding funding) {
+//        String thumbnailImgUrl = null;
+//        try {
+//            thumbnailImgUrl = s3Service.getThumbnailByFundingId(funding.getId());
+//        } catch(Exception e) {
+//            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+//        }
+//        double achieveRate = CommonUtils.calculateAchievementRate(funding.getCurrentAmount(), funding.getTargetAmount());
+//
+//        FundingDTO dto = new FundingDTO();
+//        dto.setId(funding.getId());
+//        dto.setFundingTitle(funding.getFundingTitle());
+//        dto.setMakerNick(funding.getMaker().getUser().getUserNick());
+//        dto.setAchievementRate(achieveRate);
+//        dto.setWishlistCnt(wishlistRepository.countByFunding(funding));
+//        dto.setThumbnailImgUrl(thumbnailImgUrl);
+//        // supportCnt 계산 로직
+//        int supportCnt = getFundingSupportUserCounts(funding.getId());
+//        dto.setSupportCnt(supportCnt);
+//
+//        return dto;
+//    }
 
     // FundingList -> FundingDTOList 변환 메소드
     public ResponseEntity<List<FundingDTO>> convertToFundingDTOList(List<Funding> fundingList) {
@@ -151,24 +189,22 @@ public class FundingService {
         }
         List<FundingDTO> fundingDTOList = new ArrayList<>();
         for(Funding funding : fundingList) {
-            fundingDTOList.add(convertToFundingDTO(funding));
+            FundingDTO fDTO = convertToFundingDTO(funding);
+            fDTO.setSupportCnt(getFundingSupportUserCounts(funding.getId()));
+            fundingDTOList.add(fDTO);
         }
         return ResponseEntity.ok(fundingDTOList);
     }
 
     // 펀딩 참여자 수 계산 메소드
     public int getFundingSupportUserCounts(int fundingId) {
-        if(fundingId < 1) { return Const.NULL; }
+        if (fundingId < 1) {
+            return Const.FAIL;
+        }
 
-        List<FundingSupport> supports = fundingSupportRepository.findByFundingId(fundingId);
-
-        int supporterCnt = (int) supports.stream()
-                .map(support -> support.getUser().getId())
-                .distinct()
-                .count();
-
-        return supporterCnt;
+        return fundingSupportRepository.countDistinctUsersByFundingId(fundingId);
     }
+
 
     public FundingDataDTO getFundingData(int userId, int fundingId) {
         Optional<Funding> optFunding = fundingRepository.findById(fundingId);
@@ -224,6 +260,7 @@ public class FundingService {
         return fdDTO;
     }
 
+    // 펀딩id별 펀딩 디테일 페이지의 썸네일 및 펀딩 디테일 이미지 리스트 담은 FundingImgListDTO 반환 메소드
     public FundingImgListDTO getFundingImgList(int fundingId) {
         String thumbnailUrl = s3Service.getThumbnailByFundingId(fundingId);
         List<String> detailImgUrlList = s3Service.getDetailImgListByFundingId(fundingId);
@@ -232,6 +269,66 @@ public class FundingService {
                 .detailImgUrlList(detailImgUrlList)
                 .build();
     }
+
+    // mainCategoryId별 FundingDTO 리스트 반환 메소드
+    public Page<FundingDTO> getFundingDTOPageByMainCategoryId(int mainCategoryId, Pageable pageable) {
+        // 1. MainCategory에 해당하는 SubCategory ID 리스트 가져오기
+        List<SubCategory> subCategoryList = subCategoryRepository.findAllByMainCategory_Id(mainCategoryId);
+        List<Integer> subCategoryIdList = subCategoryList.stream()
+                .map(SubCategory::getId)
+                .toList();
+
+        // 2. SubCategory ID 리스트로 Funding 엔티티 페이징 조회
+//        Page<Funding> fundingPage = fundingRepository.findAllBySubCategory_IdIn(subCategoryIdList, pageable);
+        Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        Page<Funding> fundingPage = fundingRepository.findAllBySubCategory_IdIn(subCategoryIdList, pageableWithoutSort);
+
+        // 3. Funding 엔티티를 FundingDTO로 변환 및 supportCnt 설정
+        List<FundingDTO> fundingDTOs = fundingPage.getContent().stream()
+                .map(this::convertToFundingDTO)
+                .peek(dto -> dto.setSupportCnt(getFundingSupportUserCounts(dto.getId())))
+                .collect(Collectors.toList());
+
+        // 4. supportCnt 기준으로 정렬
+        fundingDTOs.sort((a, b) -> Integer.compare(b.getSupportCnt(), a.getSupportCnt()));
+
+        // 5. 정렬된 리스트를 Page로 변환
+        return new PageImpl<>(fundingDTOs, pageable, fundingPage.getTotalElements());
+    }
+
+    // subCategoryId별 FundingDTO 리스트 반환 메소드
+    public Page<FundingDTO> getFundingDTOPageBySubCategoryId(int subCategoryId, Pageable pageable) {
+        // 1. 정렬 없는 Pageable 생성 (supportCnt 정렬은 메모리에서 처리)
+        Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+
+        // 2. SubCategory ID로 Funding 엔티티 페이징 조회
+        Page<Funding> fundingPage = fundingRepository.findAllBySubCategory_Id(subCategoryId, pageableWithoutSort);
+
+        // 3. Funding 엔티티를 FundingDTO로 변환 및 supportCnt 설정
+        List<FundingDTO> fundingDTOs = fundingPage.getContent().stream()
+                .map(this::convertToFundingDTO)
+                .peek(dto -> dto.setSupportCnt(getFundingSupportUserCounts(dto.getId())))
+                .collect(Collectors.toList());
+
+        // 4. supportCnt 기준으로 정렬
+        fundingDTOs.sort((a, b) -> Integer.compare(b.getSupportCnt(), a.getSupportCnt()));
+
+        // 5. 정렬된 리스트를 Page로 변환
+        return new PageImpl<>(fundingDTOs, pageable, fundingPage.getTotalElements());
+    }
+
+
+    // FundingList를 FundingDTO로 변환하고 참여자 수 계산하여 참여자 수를 기준으로 내림차순 정렬
+//    private List<FundingDTO> getFundingDTOListOrderBySupportCnt(List<Funding> fundingList) {
+//
+//        return fundingList.stream()
+//                .map(funding -> {
+//                    FundingDTO fDto = convertToFundingDTO(funding);
+//                    int supporterCnt = getFundingSupportUserCounts(funding.getId());
+//                    fDto.setSupportCnt(supporterCnt);
+//                    return fDto;
+//                }).sorted((a, b) -> Integer.compare(b.getSupportCnt(), a.getSupportCnt())).collect(Collectors.toList());
+//    }
 
 //    public Page<FundingDTO> searchByContent(String content, int page, int size){
 //        // null 에러 방지용 초기화

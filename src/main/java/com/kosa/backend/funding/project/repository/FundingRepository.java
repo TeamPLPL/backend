@@ -2,6 +2,7 @@ package com.kosa.backend.funding.project.repository;
 
 import com.kosa.backend.funding.project.dto.FundingWithSupporterCntDTO;
 import com.kosa.backend.funding.project.entity.Funding;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,5 +29,6 @@ public interface FundingRepository extends JpaRepository<Funding, Integer> {
     @Query("SELECT f.id FROM Funding f WHERE f.fundingStartDate <= :currentDate AND f.fundingEndDate >= :currentDate")
     List<Integer> findAllCurrentFundingIds(@Param("currentDate") LocalDateTime currentDate);
 
-
+    Page<Funding> findAllBySubCategory_IdIn(List<Integer> subCategoryIds, Pageable pageable);
+    Page<Funding> findAllBySubCategory_Id(Integer subCategoryId, Pageable pageable);
 }
