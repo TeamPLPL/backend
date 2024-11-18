@@ -12,6 +12,10 @@ public interface FundingSupportRepository extends JpaRepository<FundingSupport, 
     List<FundingSupport> findAllByRewardId(int rewardId);
 
     List<FundingSupport> findByFundingIdAndUserIdAndPaymentId(int fundingId, int userId, int paymentId);
+
+    // 새로운 메서드: paymentId 기반 조회
+    List<FundingSupport> findByPaymentId(int paymentId);
+
     void deleteByPaymentId(int paymentId);  // 새로운 삭제 메서드
 
     int countByFundingId(int fundingId);
