@@ -3,7 +3,9 @@ package com.kosa.backend.payment.service;
 import com.kosa.backend.funding.project.dto.FundingDTO;
 import com.kosa.backend.funding.project.dto.RewardDTO;
 import com.kosa.backend.funding.project.entity.Funding;
+import com.kosa.backend.funding.project.entity.MainCategory;
 import com.kosa.backend.funding.project.entity.Reward;
+import com.kosa.backend.funding.project.entity.SubCategory;
 import com.kosa.backend.funding.project.repository.FundingRepository;
 import com.kosa.backend.funding.project.repository.RewardRepository;
 import com.kosa.backend.funding.support.entity.FundingSupport;
@@ -171,6 +173,9 @@ public class PaymentService {
         Hibernate.initialize(funding.getMaker()); // Lazy 로딩 방지
         Hibernate.initialize(funding.getSubCategory()); // Lazy 로딩 방지
 
+        SubCategory subCategory = funding.getSubCategory();
+        MainCategory mainCategory = subCategory.getMainCategory();
+
         // FundingDTO 생성
         FundingDTO fundingDTO = FundingDTO.builder()
                 .id(funding.getId())
@@ -182,6 +187,10 @@ public class PaymentService {
         List<FundingSupport> fundingSupports = fundingSupportRepository.findByFundingIdAndUserIdAndPaymentId(
                 funding.getId(), payment.getUser().getId(), payment.getId()
         );
+
+        // PaymentMethod 정보 추가
+        PaymentMethod paymentMethod = paymentMethodRepository.findByPayment(payment)
+                .orElseThrow(() -> new RuntimeException("결제 수단을 찾을 수 없습니다: " + payment.getId()));
 
         List<RewardDTO> rewardDTOs = fundingSupports.stream()
                 .map(fs -> RewardDTO.builder()
@@ -209,17 +218,33 @@ public class PaymentService {
         // PaymentDetailDTO 생성
         PaymentDetailDTO paymentDetailDTO = new PaymentDetailDTO();
         paymentDetailDTO.setPaymentId(payment.getId());
+        paymentDetailDTO.setAmount(payment.getAmount());
         paymentDetailDTO.setPaymentDate(payment.getPaymentDate());
         paymentDetailDTO.setPaymentStatus(payment.getStatus().name());
         paymentDetailDTO.setReceiverName(payment.getReceiverName());
         paymentDetailDTO.setPhoneNum(payment.getPhoneNum());
         paymentDetailDTO.setDeliveryRequest(payment.getDeliveryRequest());
+
+        // Coupon 정보 매핑
+        Coupon coupon = payment.getCoupon();
+        if (coupon != null) {
+            paymentDetailDTO.setCouponId(coupon.getId());
+            paymentDetailDTO.setDiscountRate(coupon.getDiscountRate());
+        }
+
+        paymentDetailDTO.setMethodType(paymentMethod.getMethodType());
+        paymentDetailDTO.setCardNumber(paymentMethod.getCardNumber());
+
         paymentDetailDTO.setFundingStartDate(funding.getFundingStartDate());
         paymentDetailDTO.setFundingEndDate(funding.getFundingEndDate());
 
         paymentDetailDTO.setAddress(addressDTO);
         paymentDetailDTO.setFunding(fundingDTO);
         paymentDetailDTO.setRewards(rewardDTOs);
+
+        // 카테고리 정보 설정
+        paymentDetailDTO.setMainCategory(mainCategory.getMainCategoryName());
+        paymentDetailDTO.setSubCategory(subCategory.getSubCategoryName());
 
         return paymentDetailDTO;
     }
