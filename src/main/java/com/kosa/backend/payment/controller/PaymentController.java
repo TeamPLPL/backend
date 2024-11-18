@@ -1,6 +1,7 @@
 package com.kosa.backend.payment.controller;
 
 import com.kosa.backend.payment.dto.PaymentDTO;
+import com.kosa.backend.payment.dto.PaymentDetailDTO;
 import com.kosa.backend.payment.service.PaymentService;
 import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.entity.User;
@@ -57,16 +58,25 @@ public class PaymentController {
     }
 
     // 결제 이력 조회(User ID)
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<PaymentDTO>> getPaymentsByUserId(@AuthenticationPrincipal CustomUserDetails cud, @PathVariable("userId") int userId) {
+    @GetMapping("/user")
+    public ResponseEntity<List<PaymentDTO>> getPaymentsByUser(@AuthenticationPrincipal CustomUserDetails cud) {
         String userEmail = cud.getUsername();
         User user = userService.getUser(userEmail);
-        if(user == null) { return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if(user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        List<PaymentDTO> payments = paymentService.getPaymentsByUserId(userId);
+        List<PaymentDTO> payments = paymentService.getPaymentsByUserId(user.getId());
         return ResponseEntity.ok(payments);
     }
+
+    // 각 결제별 세부사항 조회
+    @GetMapping("/{paymentId}/details")
+    public ResponseEntity<PaymentDetailDTO> getPaymentDetailsByPaymentId(@PathVariable("paymentId") int paymentId) {
+        PaymentDetailDTO paymentDetails = paymentService.getPaymentDetailsByPaymentId(paymentId);
+        return ResponseEntity.ok(paymentDetails);
+    }
+
 
     // 결제 상태 업데이트
     @PutMapping("/{paymentId}/status")
