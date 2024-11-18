@@ -1,8 +1,10 @@
 package com.kosa.backend.funding.project.service;
 
+import com.kosa.backend.common.dto.FileDTO;
 import com.kosa.backend.common.entity.Files;
 import com.kosa.backend.common.entity.enums.ImgType;
 import com.kosa.backend.common.repository.FilesRepository;
+import com.kosa.backend.common.service.S3CustomService;
 import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.funding.project.dto.*;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectDTO;
@@ -36,6 +38,7 @@ public class ProjectService {
     private final FilesRepository filesRepository;
     private final S3Service s3Service;
     private final MainCategoryRepository mainCategoryRepository;
+    private final S3CustomService s3CustomService;
 
     // 프로젝트 작성한 사용자 가져오기
     public int getProjectUser(int projectId) {
@@ -148,14 +151,14 @@ public class ProjectService {
         responseDTO.setRewardInfo(rewardInfoDTOList);
 
         // Files 불러오기
-        String thumbnail = s3Service.getThumbnailByFundingId(funding.getId());
+        FileDTO thumbnail = s3CustomService.getThumbnailByFundingId(funding.getId());
         if (thumbnail != null) {
             responseDTO.setThumbnail(thumbnail);
         }
 
-        List<String> imagesPathList = s3Service.getDetailImgListByFundingId(funding.getId());
+        FileDTO imagesPathList = s3CustomService.getDetailByFundingId(funding.getId());
         if (imagesPathList != null) {
-            responseDTO.setImagesPath(imagesPathList);
+            responseDTO.setDetailImage(imagesPathList);
         }
 
         return responseDTO;
@@ -216,7 +219,7 @@ public class ProjectService {
             responseDTO.setRewardInfo(rewardInfoDTOList);
 
             // Files 불러오기
-            String thumbnail = s3Service.getThumbnailByFundingId(funding.getId());
+            FileDTO thumbnail = s3CustomService.getThumbnailByFundingId(funding.getId());
             if (thumbnail != null) {
                 responseDTO.setThumbnail(thumbnail);
             }
@@ -227,6 +230,58 @@ public class ProjectService {
 
         return responseDTOList;
     }
+
+    @Transactional
+    public ResponseProjectInfoDTO getAllProjectInfo(int projectId) {
+        // 1. 기존 Funding 객체 조회
+        Funding funding = fundingRepository.findById(projectId).orElseThrow(() ->
+                new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
+
+        // 2. ResponseProjectInfoDTO 생성 및 초기화
+        ResponseProjectInfoDTO responseDTO = new ResponseProjectInfoDTO();
+
+        // 3. 메이커 유형
+        responseDTO.setMakerType(funding.getMakerType() != null ? funding.getMakerType().toString() : null);
+
+        Optional<BusinessMaker> businessMakerOptional = businessMakerRepository.findByFunding(funding);
+        Optional<PersonalMaker> personalMakerOptional = persoanlMakerRepository.findByFunding(funding);
+
+        // 4. 대표자 이름 및 이메일
+        if (businessMakerOptional.isPresent()) {
+            BusinessMaker businessMaker = businessMakerOptional.get();
+            responseDTO.setRepName(funding.getRepName() != null ? funding.getRepName() : null);
+            responseDTO.setRepEmail(funding.getRepEmail() != null ? funding.getRepEmail() : null);
+
+            // 6. 사업자 정보
+            responseDTO.setBusinessRegistNum(businessMaker.getBusinessRegistNum() != null ? businessMaker.getBusinessRegistNum() : null);
+            responseDTO.setBusinessRegistCertif(businessMaker.getBusinessRegistCertif() != null ? businessMaker.getBusinessRegistCertif() : null);
+            responseDTO.setCompanyName(businessMaker.getCompanyName() != null ? businessMaker.getCompanyName() : null);
+        } else if (personalMakerOptional.isPresent()) {
+            PersonalMaker personalMaker = personalMakerOptional.get();
+            responseDTO.setRepName(funding.getRepName() != null ? funding.getRepName() : null);
+            responseDTO.setRepEmail(funding.getRepEmail() != null ? funding.getRepEmail() : null);
+
+            // 5. 개인 신분증
+            responseDTO.setIdentityCard(personalMaker.getIdentityCard() != null ? personalMaker.getIdentityCard() : null);
+        } else {
+            // 둘 다 없는 경우 기본값 처리
+            responseDTO.setRepName(null);
+            responseDTO.setRepEmail(null);
+            responseDTO.setIdentityCard(null);
+            responseDTO.setBusinessRegistNum(null);
+            responseDTO.setBusinessRegistCertif(null);
+            responseDTO.setCompanyName(null);
+        }
+
+        // 7. 펀딩 설명
+        responseDTO.setFundingExplanation(funding.getFundingExplanation() != null ? funding.getFundingExplanation() : null);
+
+        // 8. 펀딩 태그
+        responseDTO.setFundingTag(funding.getFundingTag() != null ? funding.getFundingTag() : null);
+
+        return responseDTO;
+    }
+
 
 
     // 프로젝트 입력(펀딩 시작일, 펀딩 종료일)

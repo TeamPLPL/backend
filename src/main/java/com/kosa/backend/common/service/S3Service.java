@@ -159,7 +159,7 @@ public class S3Service {
     ///////////////////
 
     // 펀딩ID별 썸네일 조회 메소드
-    public FileDTO getThumbnailByFundingId(int fundingId) {
+    public FileDTO getThumbnailByFundingId(int fundingId)  {
         Optional<Files> file = filesRepository.findByFundingIdAndImgType(fundingId, ImgType.THUMBNAIL);
         String signedUrl = generateSignedUrl(file.get().getPath() + file.get().getSavedNm());
         return FileDTO.builder()

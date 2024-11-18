@@ -1,6 +1,8 @@
 package com.kosa.backend.funding.project.controller;
 
+import com.kosa.backend.common.dto.FileDTO;
 import com.kosa.backend.common.entity.enums.ImgType;
+import com.kosa.backend.common.service.S3CustomService;
 import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.funding.project.dto.MainCategoryDTO;
 import com.kosa.backend.funding.project.dto.SubCategoryDTO;
@@ -27,6 +29,7 @@ public class SubApiController {
     private final CategoryService categoryService;
     private final UserService userService;
     private final S3Service s3Service;
+    private final S3CustomService s3CustomService;
 
     @GetMapping("/maincategory")
     public ResponseEntity<?> getMainCategory() {
@@ -61,7 +64,7 @@ public class SubApiController {
 
         s3Service.uploadImgFile(user, file, ImgType.THUMBNAIL, projectId);
 
-        String thumbnail =  s3Service.getThumbnailByFundingId(projectId);
+        FileDTO thumbnail =  s3Service.getThumbnailByFundingId(projectId);
 
         return ResponseEntity.ok(thumbnail);
     }
@@ -77,6 +80,37 @@ public class SubApiController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        return s3Service.uploadImgFile(user, file, ImgType.DETAIL_IMAGE, projectId);
+        s3Service.uploadImgFile(user, file, ImgType.DETAIL_IMAGE, projectId);
+
+        FileDTO detail =  s3CustomService.getDetailByFundingId(projectId);
+
+        return ResponseEntity.ok(detail);
+    }
+
+    @GetMapping("/{fileId}/deleteimage")
+    public ResponseEntity<?> deleteImage(@AuthenticationPrincipal CustomUserDetails cud,
+                                         @PathVariable(name = "fileId") int fileId) {
+        // 인증된 User 체크 메소드 따로 빼기
+        String userEmail = cud.getUsername();
+        User user = userService.getUser(userEmail);
+
+        s3Service.deleteImgFile(user, fileId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{projectId}/thumbnail")
+    public ResponseEntity<?> getThubnail(@AuthenticationPrincipal CustomUserDetails cud,
+                                         @PathVariable(name = "projectId") int projectId) throws IOException {
+        // 인증된 User 체크 메소드 따로 빼기
+        String userEmail = cud.getUsername();
+        User user = userService.getUser(userEmail);
+        if(user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        FileDTO thumbnail =  s3CustomService.getThumbnailByFundingId(projectId);
+
+        return ResponseEntity.ok(thumbnail);
     }
 }

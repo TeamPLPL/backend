@@ -1,5 +1,6 @@
 package com.kosa.backend.funding.project.dto.responsedto;
 
+import com.kosa.backend.common.dto.FileDTO;
 import com.kosa.backend.common.entity.Files;
 import com.kosa.backend.funding.project.dto.*;
 import com.kosa.backend.funding.project.entity.BusinessMaker;
@@ -45,8 +46,9 @@ public class ResponseProjectDTO {
     List<RewardDTO> rewards;
     private List<RewardInfoDTO> rewardInfo;
 
-    List<String> imagesPath;
-    private String thumbnail;
+//    List<FileDTO> imagesPath;
+    private FileDTO thumbnail;
+    private FileDTO detailImage;
 
     private int subCategoryId;
     private int mainCategoryId;

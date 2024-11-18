@@ -34,6 +34,7 @@ public class ProjectApiController {
     private final ProjectService projectService;
     private final RewardService rewardService;
 
+
     // 프로젝트 생성 - 시작 컨트롤러
     @GetMapping("/studio/start")
     public ResponseEntity<?> start(@AuthenticationPrincipal CustomUserDetails customUser) {
@@ -116,6 +117,38 @@ public class ProjectApiController {
     }
 
     // 프로젝트 가져오기 컨트롤러
+    @GetMapping("/studio/{projectId}/info")
+    public ResponseEntity<?> getProjectinfo(@AuthenticationPrincipal CustomUserDetails customUser,
+                                        @PathVariable(name = "projectId") int projectId) {
+        // 로그인한 사용자 id
+        User user = userService.findByEmail(customUser.getUsername());
+        int makerId = makerService.findById(user.getId()).getId();
+
+        // 게시글 작성한 사용자 id
+        int projectMakerId = projectService.getProjectUser(projectId);
+
+        // makerId와 projectMakerId가 다르면 잘못된 접근 메시지 반환
+        if (makerId != projectMakerId) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "잘못된 접근입니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+
+        // 서비스에서 프로젝트 정보를 가져옴
+        ResponseProjectInfoDTO projectInfo = projectService.getAllProjectInfo(projectId);
+
+        // 가져온 데이터를 응답에 추가
+        response.put("success", true);
+        response.put("projectInfo", projectInfo);
+
+        System.out.println(projectInfo.toString());
+
+        return ResponseEntity.ok(response);
+    }
+
+    // 프로젝트 가져오기 컨트롤러
     @GetMapping("/studio/projectslist")
     public ResponseEntity<List<ResponseProjectDTO>> getProjectsList(@AuthenticationPrincipal CustomUserDetails customUser) {
         // 로그인한 사용자 id
@@ -128,6 +161,7 @@ public class ProjectApiController {
         // 리스트를 ResponseEntity로 반환
         return ResponseEntity.ok(responseProjectDTOS);
     }
+
 
 
     // 프로젝트 생성 - 스케쥴 컨트롤러
