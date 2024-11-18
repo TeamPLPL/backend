@@ -220,7 +220,10 @@ public class FundingService {
                 new IllegalArgumentException("서브 카테고리를 찾을 수 없습니다. ID: " + subCategoryId));
 
         Maker maker = funding.getMaker();
-        String makerProfileImgUrl = s3Service.getProfileImgByUserId(maker.getUser().getId()).getSignedUrl();
+        String makerProfileImgUrl = null;
+        try {
+            makerProfileImgUrl = s3Service.getProfileImgByUserId(maker.getUser().getId()).getSignedUrl();
+        } catch(Exception e) { e.printStackTrace(); }
 
         boolean isFollowing;
         if(userId < 1) { isFollowing = false; }
@@ -263,7 +266,11 @@ public class FundingService {
 
     // 펀딩id별 펀딩 디테일 페이지의 썸네일 및 펀딩 디테일 이미지 리스트 담은 FundingImgListDTO 반환 메소드
     public FundingImgListDTO getFundingImgList(int fundingId) {
-        String thumbnailUrl = s3Service.getThumbnailByFundingId(fundingId).getSignedUrl();
+        String thumbnailUrl = null;
+        try {
+            thumbnailUrl = s3Service.getThumbnailByFundingId(fundingId).getSignedUrl();
+        } catch(Exception e) { e.printStackTrace(); }
+        System.out.println(thumbnailUrl);
         List<FileDTO> detailFileDTOList = s3Service.getDetailImgListByFundingId(fundingId);
         List<String> detailImgUrlList = new ArrayList<>();
         for(FileDTO fileDTO : detailFileDTOList) {
