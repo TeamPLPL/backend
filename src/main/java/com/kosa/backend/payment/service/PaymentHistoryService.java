@@ -32,7 +32,7 @@ public class PaymentHistoryService {
                 .id(paymentHistory.getPayment().getId())
                 .category(paymentHistory.getFunding().getSubCategory().getMainCategory().getMainCategoryName())
                 .subcategory(paymentHistory.getFunding().getSubCategory().getSubCategoryName())
-//                .status("진행중") // 혹은 Funding 상태를 기준으로 설정
+                .status(String.valueOf(paymentHistory.getPayment().getStatus()))
                 .title(paymentHistory.getFunding().getFundingTitle())
                 .author(paymentHistory.getFunding().getMaker().getUser().getUserNick())
                 .date(paymentHistory.getCreatedAt().toLocalDate().toString())
