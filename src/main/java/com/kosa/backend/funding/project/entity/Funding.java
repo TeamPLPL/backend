@@ -66,9 +66,13 @@ public class Funding extends Auditable {
 
     private LocalDateTime publishDate;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "sub_category_id", nullable = true)
+//    @OneToOne(cascade = CascadeType.REMOVE)
+//    @JoinColumn(name = "sub_category_id", nullable = true)
+//    private SubCategory subCategory;
+    @ManyToOne
+    @JoinColumn(name = "sub_category_id")
     private SubCategory subCategory;
+
 
     @ManyToOne
     @JoinColumn(name = "maker_id", nullable = true)

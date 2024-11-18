@@ -4,9 +4,13 @@ import com.kosa.backend.common.entity.Auditable;
 import com.kosa.backend.funding.project.entity.Funding;
 import com.kosa.backend.user.entity.User;
 import jakarta.persistence.*;
+import lombok.*;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 @Entity
 @Table(name = "WISHLIST")
+@NoArgsConstructor
 public class Wishlist extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
