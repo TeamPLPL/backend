@@ -6,6 +6,7 @@ import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.service.UserService;
+import com.kosa.backend.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,26 +35,60 @@ public class ImageController {
         return s3Service.uploadImgFile(user, file, ImgType.PROFILE_IMAGE);
     }
 
-    @PutMapping("/{funding-id}/detail-img")
-    public ResponseEntity<String> updateFundingDetailImgList(@AuthenticationPrincipal CustomUserDetails cud, @PathVariable("funding-id") int fundingId, List<MultipartFile> filesList) {
-        // 인증된 User 체크 메소드 따로 빼기
-        String userEmail = cud.getUsername();
-        User user = userService.getUser(userEmail);
-        if(user == null) { return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    // 디테일 이미지 리스트 업데이트
+//    @PutMapping("/{funding-id}/detail-img")
+//    public ResponseEntity<String> updateFundingDetailImgList(
+//            @AuthenticationPrincipal CustomUserDetails cud,
+//            @PathVariable("funding-id") int fundingId,
+//            @RequestPart("files") List<MultipartFile> files,
+//            @RequestPart("fileIds") List<Integer> fileIds) {
+//
+//        String userEmail = cud.getUsername();
+//        User user = userService.getUser(userEmail);
+//        if (user == null) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        }
+//
+//        try {
+//            s3Service.updateImages(user, fundingId, files, fileIds, ImgType.DETAIL_IMAGE);
+//            return ResponseEntity.ok("Images updated successfully");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating images: " + e.getMessage());
+//        }
+//    }
+
+
+
+    @DeleteMapping("/delete/{file-id}")
+    public ResponseEntity<String> deleteFundingDetailImg(@AuthenticationPrincipal CustomUserDetails cud, @PathVariable("file-id") int fileId) {
+        User user = CommonUtils.getCurrentUser(cud, userService);
+        try {
+            s3Service.deleteImgFile(user, fileId);
+            return ResponseEntity.ok("Image deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating images: " + e.getMessage());
         }
-        for(MultipartFile f : filesList) {
-            String fileName = f.getOriginalFilename();
-            // 파일이름으로 조회
-            Files file = s3Service.getFilesByOriginalNm(fileName);
-            if(file == null) {
-                // 새 파일 업로드
-                s3Service.uploadImgFile(user, f, ImgType.DETAIL_IMAGE, fundingId);
-            } else {
-                s3Service.updateFilesSequence(file);
-            }
-        }
-        return ResponseEntity.ok().build();
     }
+
+//    @PutMapping("/{funding-id}/detail-img")
+//    public ResponseEntity<String> updateFundingDetailImgList(@AuthenticationPrincipal CustomUserDetails cud, @PathVariable("funding-id") int fundingId, List<Integer> filesIdList) {
+//        // 인증된 User 체크 메소드 따로 빼기
+//        String userEmail = cud.getUsername();
+//        User user = userService.getUser(userEmail);
+//        if(user == null) { return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        }
+//        for(int fileId : filesIdList) {
+//            // 파일이름으로 조회
+//            Files file = s3Service.getFilesById(fileId);
+//            if(file == null) {
+//                // 새 파일 업로드
+//                s3Service.uploadImgFile(user, , ImgType.DETAIL_IMAGE, fundingId);
+//            } else {
+//                s3Service.updateFilesSequence(file);
+//            }
+//        }
+//        return ResponseEntity.ok().build();
+//    }
 
     //    @PostMapping
 //    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {

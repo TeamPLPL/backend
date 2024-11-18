@@ -19,7 +19,7 @@ public interface FilesRepository extends JpaRepository<Files, Integer> {
 
 //    int countAllByFundingIdAndImgType(int fundingId, ImgType imgType);
 
-//    List<Files> findAllByFundingIdAndImgType(int fundingId, ImgType imgType);
+    List<Files> findAllByFundingIdAndImgType(int fundingId, ImgType imgType);
 
     Optional<Files> findBySavedNm(String savedNm);
 

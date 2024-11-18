@@ -1,5 +1,6 @@
 package com.kosa.backend.common.service;
 
+import com.kosa.backend.common.dto.FileDTO;
 import com.kosa.backend.common.entity.Files;
 import com.kosa.backend.common.entity.enums.ImgType;
 import com.kosa.backend.common.repository.FilesRepository;
@@ -7,11 +8,12 @@ import com.kosa.backend.common.repository.FilesSequenceRepository;
 import com.kosa.backend.funding.project.entity.Funding;
 import com.kosa.backend.funding.project.repository.FundingRepository;
 import com.kosa.backend.user.entity.User;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -140,46 +142,56 @@ public class S3Service {
 
     //////////////////
     // 편딩ID별 펀딩디테일이미지리스트 조회 메소드
-    public List<String> getDetailImgListByFundingId(int fundingId) {
-//        List<Files> detailImgList = filesRepository.findAllByFundingIdAndImgType(fundingId, ImgType.DETAIL_IMAGE);
+    public List<FileDTO> getDetailImgListByFundingId(int fundingId) {
         List<Files> detailImgList = filesRepository.findAllByFundingIdAndImgTypeOrderBySequence(fundingId, ImgType.DETAIL_IMAGE);
 
-        List<String> signedUrlList = new ArrayList<>();
+        List<FileDTO> signedUrlList = new ArrayList<>();
         for (Files file : detailImgList) {
             String fullPath = file.getPath() + file.getSavedNm();
-            signedUrlList.add(generateSignedUrl(fullPath));
+            FileDTO fDto = FileDTO.builder()
+                    .fileId(file.getId())
+                    .signedUrl(generateSignedUrl(fullPath))
+                    .build();
+            signedUrlList.add(fDto);
         }
         return signedUrlList;
     }
     ///////////////////
 
     // 펀딩ID별 썸네일 조회 메소드
-    public String getThumbnailByFundingId(int fundingId) {
+    public FileDTO getThumbnailByFundingId(int fundingId) {
         Optional<Files> file = filesRepository.findByFundingIdAndImgType(fundingId, ImgType.THUMBNAIL);
-        return file.map(f -> generateSignedUrl(f.getPath() + f.getSavedNm())).orElse(null);
+        String signedUrl = generateSignedUrl(file.get().getPath() + file.get().getSavedNm());
+        return FileDTO.builder()
+                .fileId(file.get().getId())
+                .signedUrl(signedUrl)
+                .build();
     }
 
     // 사용자ID별 프로필이미지 조회 메소드
-    public String getProfileImgByUserId(int userId) {
+    public FileDTO getProfileImgByUserId(int userId) {
         Optional<Files> file = filesRepository.findByUserIdAndImgType(userId, ImgType.PROFILE_IMAGE);
-        return file.map(f -> generateSignedUrl(f.getPath() + f.getSavedNm())).orElse(null);
+        String signedUrl = generateSignedUrl(file.get().getPath() + file.get().getSavedNm());
+        return FileDTO.builder()
+                .fileId(file.get().getId())
+                .signedUrl(signedUrl)
+                .build();
     }
 
     // 이미지 삭제 메소드
     @Transactional
-    public void deleteImgFile(User user, Files file) {
+    public void deleteImgFile(User user, int fileId) {
         if(user == null) {
-            System.out.println("user is null");
-            return;
-        } else if(file == null) {
-            System.out.println("file is null");
-            return;
+            throw new RuntimeException("user is null");
+        }
+        Files file = filesRepository.findById(fileId).orElse(null);
+        if(file == null) {
+            throw new RuntimeException("file is null");
         }
 
         // DB 삭제
-        int filesId = file.getId();
-        filesSequenceRepository.deleteByFilesId(filesId);
-        filesRepository.deleteById(filesId);
+        filesSequenceRepository.deleteByFilesId(fileId);
+        filesRepository.deleteById(fileId);
 
         String fullPath = file.getPath() + file.getSavedNm();
 
@@ -189,12 +201,16 @@ public class S3Service {
                 .build();
 
         s3Client.deleteObject(deleteObjectRequest);
-
     }
 
     // 원래파일명으로 파일 조회
     public Files getFilesByOriginalNm(String fileName) {
         return filesRepository.findByOriginalNm(fileName).orElse(null);
+    }
+
+    // 파일id로 파일 조회
+    public Files getFilesById(int fileId) {
+        return filesRepository.findById(fileId).orElse(null);
     }
 
     // 파일시퀀스 업데이트
@@ -203,6 +219,39 @@ public class S3Service {
         filesSequenceRepository.deleteByFilesId(file.getId());
         filesSequenceRepository.save(file);
     }
+
+
+//    // 이미지 리스트 수정
+//    @Transactional
+//    public void updateImages(User user, int fundingId, List<MultipartFile> files, List<Integer> fileIds, ImgType imgType) throws IOException {
+//        // 기존 이미지 삭제
+//        List<Files> existingFiles = filesRepository.findAllByFundingIdAndImgType(fundingId, imgType);
+//        for (Files file : existingFiles) {
+//            if (!fileIds.contains(file.getId())) {
+//                deleteImgFile(user, file);
+//            }
+//        }
+//
+//        // 새 이미지 업로드 및 기존 이미지 순서 업데이트
+//        for (int i = 0; i < files.size(); i++) {
+//            MultipartFile file = files.get(i);
+//            if (i < fileIds.size()) {
+//                // 기존 이미지 업데이트
+//                int fileId = fileIds.get(i);
+//                Files existingFile = getFilesById(fileId);
+//                if (existingFile != null) {
+//                    updateFilesSequence(existingFile);
+//                } else {
+//                    // 파일이 없으면 새로 업로드
+//                    uploadImgFile(user, file, imgType, fundingId);
+//                }
+//            } else {
+//                // 새 이미지 업로드
+//                uploadImgFile(user, file, imgType, fundingId);
+//            }
+//        }
+//    }
+
 
     ////////////////////
 
