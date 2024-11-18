@@ -2,6 +2,7 @@ package com.kosa.backend.funding.project.repository;
 
 import com.kosa.backend.funding.project.dto.FundingWithSupporterCntDTO;
 import com.kosa.backend.funding.project.entity.Funding;
+import com.kosa.backend.user.entity.Maker;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,5 +29,6 @@ public interface FundingRepository extends JpaRepository<Funding, Integer> {
     @Query("SELECT f.id FROM Funding f WHERE f.fundingStartDate <= :currentDate AND f.fundingEndDate >= :currentDate")
     List<Integer> findAllCurrentFundingIds(@Param("currentDate") LocalDateTime currentDate);
 
-
+    // 작성자 : 신은호, 작성 내용 : maker에 의한 프로젝트 조회
+    List<Funding> findAllByMaker(Maker maker);
 }

@@ -51,7 +51,6 @@ public class Reward extends Auditable {
 
     public static Reward toSaveEntity(RequestRewardDTO rewardDTO, Funding funding) {
         return Reward.builder()
-                .id(rewardDTO.getId())
                 .rewardName(rewardDTO.getRewardName())
                 .price(rewardDTO.getPrice())
                 .explanation(rewardDTO.getExplanation())
@@ -61,5 +60,4 @@ public class Reward extends Auditable {
                 .funding(funding)
                 .build();
     }
-
 }

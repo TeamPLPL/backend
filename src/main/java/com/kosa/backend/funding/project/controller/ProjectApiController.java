@@ -20,7 +20,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -83,7 +85,7 @@ public class ProjectApiController {
 
     // 프로젝트 가져오기 컨트롤러
     @GetMapping("/studio/{projectId}/project")
-    public ResponseEntity<?> getIntro(@AuthenticationPrincipal CustomUserDetails customUser,
+    public ResponseEntity<?> getProject(@AuthenticationPrincipal CustomUserDetails customUser,
                                       @PathVariable(name = "projectId") int projectId) {
         // 로그인한 사용자 id
         User user = userService.findByEmail(customUser.getUsername());
@@ -113,10 +115,20 @@ public class ProjectApiController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/studio/{projectId}/funding")
-    public void main2() {
+    // 프로젝트 가져오기 컨트롤러
+    @GetMapping("/studio/projectslist")
+    public ResponseEntity<List<ResponseProjectDTO>> getProjectsList(@AuthenticationPrincipal CustomUserDetails customUser) {
+        // 로그인한 사용자 id
+        User user = userService.findByEmail(customUser.getUsername());
+        Maker maker = makerService.findById(user.getId());
 
+        // Maker에 해당하는 프로젝트 리스트 조회
+        List<ResponseProjectDTO> responseProjectDTOS = projectService.getAllProjects(maker);
+
+        // 리스트를 ResponseEntity로 반환
+        return ResponseEntity.ok(responseProjectDTOS);
     }
+
 
     // 프로젝트 생성 - 스케쥴 컨트롤러
     @PostMapping("/studio/{projectId}/schedule")
@@ -175,38 +187,6 @@ public class ProjectApiController {
         return ResponseEntity.ok()
                 .body(response);
     }
-
-    // 프로젝트 가져오기 - 정보 가져오기 컨트롤러
-    @GetMapping("/studio/{projectId}/info")
-    public ResponseEntity<?> getInfo(@PathVariable(name = "projectId") int projectId) {
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            // 서비스에서 프로젝트 정보를 가져옴
-            ResponseProjectInfoDTO projectInfo = projectService.getInfo(projectId);
-
-            // 가져온 데이터를 응답에 추가
-            response.put("success", true);
-            response.put("projectInfo", projectInfo);
-
-            System.out.println(projectInfo.toString());
-
-            return ResponseEntity.ok(response);
-        } catch (EntityNotFoundException e) {
-            // 프로젝트 정보를 찾지 못한 경우
-            response.put("success", false);
-            response.put("message", "Project not found with id: " + projectId);
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } catch (Exception e) {
-            // 기타 예외 처리
-            response.put("success", false);
-            response.put("message", "An error occurred while retrieving the project information.");
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-
 
     @GetMapping("/studio/{projectId}/delete")
     public ResponseEntity<?> delete(@PathVariable(name = "projectId") int projectId) {

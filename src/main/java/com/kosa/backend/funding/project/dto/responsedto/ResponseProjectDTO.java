@@ -44,5 +44,13 @@ public class ResponseProjectDTO {
     private PersonalMakerDTO personalMaker;
     List<RewardDTO> rewards;
     private List<RewardInfoDTO> rewardInfo;
-    List<FilesDTO> files;
+
+    List<String> imagesPath;
+    private String thumbnail;
+
+    private int subCategoryId;
+    private int mainCategoryId;
+
+    private String subCategoryName;
+    private String mainCategoryName;
 }

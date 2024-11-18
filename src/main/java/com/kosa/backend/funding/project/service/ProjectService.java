@@ -3,6 +3,7 @@ package com.kosa.backend.funding.project.service;
 import com.kosa.backend.common.entity.Files;
 import com.kosa.backend.common.entity.enums.ImgType;
 import com.kosa.backend.common.repository.FilesRepository;
+import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.funding.project.dto.*;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectInfoDTO;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -32,6 +34,8 @@ public class ProjectService {
     private final BusinessMakerRepository businessMakerRepository;
     private final RewardInfoRepository rewardInfoRepository;
     private final FilesRepository filesRepository;
+    private final S3Service s3Service;
+    private final MainCategoryRepository mainCategoryRepository;
 
     // 프로젝트 작성한 사용자 가져오기
     public int getProjectUser(int projectId) {
@@ -76,7 +80,7 @@ public class ProjectService {
 
         ResponseProjectDTO responseDTO = new ResponseProjectDTO();
 
-        responseDTO.setId(funding.getMaker().getId());
+        responseDTO.setId(funding.getId());
         responseDTO.setFundingTitle(funding.getFundingTitle());
         responseDTO.setTargetAmount(funding.getTargetAmount());
         responseDTO.setFundingStartDate(funding.getFundingStartDate());
@@ -90,39 +94,140 @@ public class ProjectService {
         responseDTO.setPublished(funding.isPublished());
         responseDTO.setPublishDate(funding.getPublishDate());
 
-        responseDTO.setSubCategory(SubCategoryDTO.fromSubCategory(funding.getSubCategory()));
-        responseDTO.setMaker(MakerDTO.fromEntity(funding.getMaker()));
-        responseDTO.setBusinessMaker(BusinessMakerDTO.fromEntity(funding.getBusinessMaker()));
-        responseDTO.setPersonalMaker(PersonalMakerDTO.fromEntity(funding.getPersonalMaker()));
+        responseDTO.setSubCategory(funding.getSubCategory() != null ? SubCategoryDTO.fromSubCategory(funding.getSubCategory()) : null);
+        responseDTO.setMaker(funding.getMaker() != null ? MakerDTO.fromEntity(funding.getMaker()) : null);
+        responseDTO.setBusinessMaker(funding.getBusinessMaker() != null ? BusinessMakerDTO.fromEntity(funding.getBusinessMaker()) : null);
+        responseDTO.setPersonalMaker(funding.getPersonalMaker() != null ? PersonalMakerDTO.fromEntity(funding.getPersonalMaker()) : null);
+
+        responseDTO.setSubCategoryId(
+                Optional.ofNullable(funding.getSubCategory())
+                        .map(SubCategory::getId)
+                        .orElse(0) // 기본값을 0으로 설정
+        );
+
+        responseDTO.setMainCategoryId(
+                Optional.ofNullable(funding.getSubCategory())
+                        .map(SubCategory::getMainCategory)
+                        .map(MainCategory::getId)
+                        .orElse(0) // 기본값을 0으로 설정
+        );
+
+
+        responseDTO.setSubCategoryName(
+                funding.getSubCategory() != null && funding.getSubCategory().getSubCategoryName() != null
+                        ? funding.getSubCategory().getSubCategoryName()
+                        : null
+        );
+
+        responseDTO.setMainCategoryName(
+                funding.getSubCategory() != null
+                        && funding.getSubCategory().getMainCategory() != null
+                        && funding.getSubCategory().getMainCategory().getMainCategoryName() != null
+                        ? funding.getSubCategory().getMainCategory().getMainCategoryName()
+                        : null
+        );
 
         // rewardList 불러오기
         List<Reward> rewardsList = funding.getRewards();
         List<RewardDTO> rewardDTOList = new ArrayList<>();
-        for(Reward reward : rewardsList) {
-            rewardDTOList.add(RewardDTO.fromEntity(reward));
+        if (rewardsList != null) {
+            for (Reward reward : rewardsList) {
+                rewardDTOList.add(RewardDTO.fromEntity(reward));
+            }
         }
         responseDTO.setRewards(rewardDTOList);
 
         // rewardInfoList 불러오기
         List<RewardInfo> rewardInfoList = rewardInfoRepository.findByFunding(funding);
         List<RewardInfoDTO> rewardInfoDTOList = new ArrayList<>();
-        for(RewardInfo rewardInfo : rewardInfoList) {
-            rewardInfoDTOList.add(RewardInfoDTO.fromEntity(rewardInfo));
+        if (rewardInfoList != null) {
+            for (RewardInfo rewardInfo : rewardInfoList) {
+                rewardInfoDTOList.add(RewardInfoDTO.fromEntity(rewardInfo));
+            }
         }
         responseDTO.setRewardInfo(rewardInfoDTOList);
 
         // Files 불러오기
-        Files thumbnail = filesRepository.findByFundingIdAndImgType(funding.getId(), ImgType.THUMBNAIL).orElse(null);
-        List<Files> filesList = filesRepository.findAllByFundingIdAndImgTypeOrderBySequence(funding.getId(), ImgType.DETAIL_IMAGE);
-        List<FilesDTO> filesDTOList = new ArrayList<>();
-        filesDTOList.add(FilesDTO.fromEntity(thumbnail));
-        for(Files file : filesList) {
-            filesDTOList.add(FilesDTO.fromEntity(file));
+        String thumbnail = s3Service.getThumbnailByFundingId(funding.getId());
+        if (thumbnail != null) {
+            responseDTO.setThumbnail(thumbnail);
         }
-        responseDTO.setFiles(filesDTOList);
+
+        List<String> imagesPathList = s3Service.getDetailImgListByFundingId(funding.getId());
+        if (imagesPathList != null) {
+            responseDTO.setImagesPath(imagesPathList);
+        }
 
         return responseDTO;
     }
+
+
+    @Transactional
+    public List<ResponseProjectDTO> getAllProjects(Maker maker) {
+        // 1. 모든 Funding 객체 조회
+        List<Funding> fundingList = fundingRepository.findAllByMaker(maker);
+
+        // 2. 각 Funding 객체를 ResponseProjectDTO로 변환
+        List<ResponseProjectDTO> responseDTOList = new ArrayList<>();
+        for (Funding funding : fundingList) {
+            ResponseProjectDTO responseDTO = new ResponseProjectDTO();
+
+            responseDTO.setId(funding.getId());
+            responseDTO.setFundingTitle(funding.getFundingTitle());
+            responseDTO.setTargetAmount(funding.getTargetAmount());
+            responseDTO.setFundingStartDate(funding.getFundingStartDate());
+            responseDTO.setFundingEndDate(funding.getFundingEndDate());
+            responseDTO.setMakerType(funding.getMakerType() != null ? funding.getMakerType().toString() : null);
+            responseDTO.setRepName(funding.getRepName());
+            responseDTO.setRepEmail(funding.getRepEmail());
+            responseDTO.setFundingExplanation(funding.getFundingExplanation());
+            responseDTO.setFundingTag(funding.getFundingTag());
+            responseDTO.setSaveStatus(funding.getSaveStatus());
+            responseDTO.setPublished(funding.isPublished());
+            responseDTO.setPublishDate(funding.getPublishDate());
+
+            responseDTO.setSubCategory(funding.getSubCategory() != null ? SubCategoryDTO.fromSubCategory(funding.getSubCategory()) : null);
+            responseDTO.setMaker(funding.getMaker() != null ? MakerDTO.fromEntity(funding.getMaker()) : null);
+            responseDTO.setBusinessMaker(funding.getBusinessMaker() != null ? BusinessMakerDTO.fromEntity(funding.getBusinessMaker()) : null);
+            responseDTO.setPersonalMaker(funding.getPersonalMaker() != null ? PersonalMakerDTO.fromEntity(funding.getPersonalMaker()) : null);
+
+            // rewardList 불러오기
+            List<Reward> rewardsList = funding.getRewards();
+            List<RewardDTO> rewardDTOList = new ArrayList<>();
+            if (rewardsList != null) {
+                for (Reward reward : rewardsList) {
+                    if (reward != null) {
+                        rewardDTOList.add(RewardDTO.fromEntity(reward));
+                    }
+                }
+            }
+            responseDTO.setRewards(rewardDTOList);
+
+            // rewardInfoList 불러오기
+            List<RewardInfo> rewardInfoList = rewardInfoRepository.findByFunding(funding);
+            List<RewardInfoDTO> rewardInfoDTOList = new ArrayList<>();
+            if (rewardInfoList != null) {
+                for (RewardInfo rewardInfo : rewardInfoList) {
+                    if (rewardInfo != null) {
+                        rewardInfoDTOList.add(RewardInfoDTO.fromEntity(rewardInfo));
+                    }
+                }
+            }
+            responseDTO.setRewardInfo(rewardInfoDTOList);
+
+            // Files 불러오기
+            String thumbnail = s3Service.getThumbnailByFundingId(funding.getId());
+            if (thumbnail != null) {
+                responseDTO.setThumbnail(thumbnail);
+            }
+
+            // 3. 변환된 DTO를 리스트에 추가
+            responseDTOList.add(responseDTO);
+        }
+
+        return responseDTOList;
+    }
+
 
     // 프로젝트 입력(펀딩 시작일, 펀딩 종료일)
     @Transactional
@@ -147,15 +252,15 @@ public class ProjectService {
                 new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
 
         // 2. 필요한 필드(대표자 이름, 대표자 이메일)만 업데이트, setter 리펙토링 완료(setter 사용 안함)
-        if(projectInfoDTO.getRepName()!=null&&!projectInfoDTO.getRepName().equals("")){
+        if (projectInfoDTO.getRepName() != null && !projectInfoDTO.getRepName().equals("")) {
             funding.updateRepName(projectInfoDTO.getRepName());
         }
-        if(projectInfoDTO.getRepEmail()!=null&&!projectInfoDTO.getRepEmail().equals("")){
+        if (projectInfoDTO.getRepEmail() != null && !projectInfoDTO.getRepEmail().equals("")) {
             funding.updateRepEmail(projectInfoDTO.getRepEmail());
         }
 
         // 4. 필요한 필드(펀딩 설명)만 업데이트
-        if(projectInfoDTO.getFundingExplanation()!=null&&!projectInfoDTO.getFundingExplanation().equals("")){
+        if (projectInfoDTO.getFundingExplanation() != null && !projectInfoDTO.getFundingExplanation().equals("")) {
             funding.updateFundingExplanation(projectInfoDTO.getFundingExplanation());
         }
 
@@ -163,7 +268,7 @@ public class ProjectService {
         makerType(projectInfoDTO, funding);
 
         // 5. 필요한 필드(펀딩 태그)만 업데이트
-        if(projectInfoDTO.getFundingTag()!=null&&!projectInfoDTO.getFundingTag().equals("")){
+        if (projectInfoDTO.getFundingTag() != null && !projectInfoDTO.getFundingTag().equals("")) {
             funding.updateFundingTag(projectInfoDTO.getFundingTag());
         }
 
@@ -172,41 +277,6 @@ public class ProjectService {
         // 8. 저장
         return fundingRepository.save(funding).getId();
     }
-
-    // 서비스 클래스에 작성
-    public ResponseProjectInfoDTO getInfo(int projectId) {
-        // 프로젝트를 데이터베이스에서 찾아오기
-        Funding funding = fundingRepository.findById(projectId)
-                .orElseThrow(() -> new EntityNotFoundException("Funding not found with id: " + projectId));
-
-        // DTO에 엔터티 데이터 매핑
-        ResponseProjectInfoDTO responseDTO = new ResponseProjectInfoDTO();
-
-        // 기본 필드 매핑
-        responseDTO.setMakerType(funding.getMakerType() != null ? funding.getMakerType().toString() : null);
-        responseDTO.setRepName(funding.getRepName());
-        responseDTO.setRepEmail(funding.getRepEmail());
-        responseDTO.setTargetAmount(funding.getTargetAmount());
-        responseDTO.setFundingExplanation(funding.getFundingExplanation());
-        responseDTO.setFundingTag(funding.getFundingTag());
-
-//        // 신분증 정보는 Maker의 타입에 따라 매핑
-//        if (funding.getMakerType() == MakerType.business && funding.getBusinessMaker() != null) {
-//            responseDTO.setBusinessRegistNum(funding.getBusinessMaker().getBusinessRegistNum());
-//            responseDTO.setBusinessRegistCertif(funding.getBusinessMaker().getBusinessRegistCertif());
-//            responseDTO.setCompanyName(funding.getBusinessMaker().getCompanyName());
-//        } else if (funding.getMakerType() == MakerType.personal && funding.getPersonalMaker() != null) {
-//            responseDTO.setIdentityCard(funding.getPersonalMaker().getIdentityCard());
-//        }
-//
-//        // 필요한 경우 추가 데이터를 가져와서 DTO에 설정 (예: 사진)
-//        if (funding.getFiles() != null && !funding.getFiles().isEmpty()) {
-//            // 펀딩 사진 정보 설정 (여러 파일 처리 가능, 예시로 첫 번째 파일 사용)
-//            // responseDTO.setFundingPhotos(funding.getFiles().stream().map(file -> file.getUrl()).collect(Collectors.toList()));
-//        }
-        return responseDTO;
-    }
-
 
     // 프로젝트 삭제
     public void delete(int projectId) {
@@ -219,7 +289,7 @@ public class ProjectService {
     }
 
     // 6. 메이커 유형 선택, 메소드 분리
-    public void makerType(RequestProjectInfoDTO projectInfoDTO, Funding funding){
+    public void makerType(RequestProjectInfoDTO projectInfoDTO, Funding funding) {
         if (projectInfoDTO.getMakerType() != null && !projectInfoDTO.getMakerType().equals("")) {
             MakerType makerType = null;
             if (projectInfoDTO.getMakerType().equals("personal")) {
