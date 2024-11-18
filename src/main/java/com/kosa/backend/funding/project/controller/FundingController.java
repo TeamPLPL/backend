@@ -8,8 +8,10 @@ import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -95,13 +97,23 @@ public class FundingController {
         return ResponseEntity.ok(fundingService.getFundingImgList(fundingId));
     }
 
-//    @GetMapping("/search")
-//    public ResponseEntity<Page<FundingDTO>> searchTitle(
-//            @RequestParam("title") String title,
-//            @PageableDefault(size = Const.DEFAULT_PAGE_SIZE) Pageable pageable) {
-//
-//        Page<FundingDTO> searchResults = fundingService.searchByTitle(title, pageable);
-//
-//        return ResponseEntity.ok(searchResults);
-//    }
+    @GetMapping("/search")
+    public ResponseEntity<PagedModel<FundingDTO>> searchTitle(
+            @RequestParam("title") String title,
+            @PageableDefault(size = Const.DEFAULT_PAGE_SIZE) Pageable pageable) {
+
+        Page<FundingDTO> searchResults = fundingService.searchByTitle(title, pageable);
+        return ResponseEntity.ok(new PagedModel<>(searchResults));
+    }
+
+    @GetMapping("/fundings")
+    public ResponseEntity<Page<FundingDTO>> getFundings(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<FundingDTO> fundingDTOs = fundingService.getFundingsOrderBySupporterCount(pageable);
+
+        return ResponseEntity.ok(fundingDTOs);
+    }
 }
