@@ -1,5 +1,6 @@
 package com.kosa.backend.funding.project.service;
 
+import com.kosa.backend.common.dto.FileDTO;
 import com.kosa.backend.common.entity.Const;
 import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.funding.project.dto.*;
@@ -120,7 +121,7 @@ public class FundingService {
     public FundingDTO convertToFundingDTO(Funding funding) {
         String thumbnailImgUrl = null;
         try {
-            thumbnailImgUrl = s3Service.getThumbnailByFundingId(funding.getId());
+            thumbnailImgUrl = s3Service.getThumbnailByFundingId(funding.getId()).getSignedUrl();
         } catch(Exception e) {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -219,7 +220,7 @@ public class FundingService {
                 new IllegalArgumentException("서브 카테고리를 찾을 수 없습니다. ID: " + subCategoryId));
 
         Maker maker = funding.getMaker();
-        String makerProfileImgUrl = s3Service.getProfileImgByUserId(maker.getUser().getId());
+        String makerProfileImgUrl = s3Service.getProfileImgByUserId(maker.getUser().getId()).getSignedUrl();
 
         boolean isFollowing;
         if(userId < 1) { isFollowing = false; }
@@ -262,8 +263,12 @@ public class FundingService {
 
     // 펀딩id별 펀딩 디테일 페이지의 썸네일 및 펀딩 디테일 이미지 리스트 담은 FundingImgListDTO 반환 메소드
     public FundingImgListDTO getFundingImgList(int fundingId) {
-        String thumbnailUrl = s3Service.getThumbnailByFundingId(fundingId);
-        List<String> detailImgUrlList = s3Service.getDetailImgListByFundingId(fundingId);
+        String thumbnailUrl = s3Service.getThumbnailByFundingId(fundingId).getSignedUrl();
+        List<FileDTO> detailFileDTOList = s3Service.getDetailImgListByFundingId(fundingId);
+        List<String> detailImgUrlList = new ArrayList<>();
+        for(FileDTO fileDTO : detailFileDTOList) {
+            detailImgUrlList.add(fileDTO.getSignedUrl());
+        }
         return FundingImgListDTO.builder()
                 .thumbnailImgUrl(thumbnailUrl)
                 .detailImgUrlList(detailImgUrlList)
