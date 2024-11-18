@@ -2,11 +2,8 @@ package com.kosa.backend.funding.project.repository;
 
 import com.kosa.backend.funding.project.dto.FundingWithSupporterCntDTO;
 import com.kosa.backend.funding.project.entity.Funding;
-<<<<<<< HEAD
 import com.kosa.backend.user.entity.Maker;
-=======
 import org.springframework.data.domain.Page;
->>>>>>> 6a971f34c68611d59b89e696d3e5b3983a9eb4d4
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
