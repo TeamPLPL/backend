@@ -123,7 +123,7 @@ public class FundingService {
         try {
             thumbnailImgUrl = s3Service.getThumbnailByFundingId(funding.getId()).getSignedUrl();
         } catch(Exception e) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            System.out.println("썸네일 없음 fundingId: " + funding.getId());
         }
 
         double achieveRate = CommonUtils.calculateAchievementRate(funding.getCurrentAmount(), funding.getTargetAmount());
@@ -140,48 +140,6 @@ public class FundingService {
                 .thumbnailImgUrl(thumbnailImgUrl)
                 .build();
     }
-//    public FundingDTO convertToFundingDTO(Funding funding) {
-//        String thumbnailImgUrl = null;
-//        try {
-//            thumbnailImgUrl = s3Service.getThumbnailByFundingId(funding.getId());
-//        } catch(Exception e) {
-//            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-//        }
-//        double achieveRate = CommonUtils.calculateAchievementRate(funding.getCurrentAmount(), funding.getTargetAmount());
-//
-//        return FundingDTO.builder()
-//                .id(funding.getId())
-//                .fundingTitle(funding.getFundingTitle())
-//                .makerNick(funding.getMaker().getUser().getUserNick())
-//                .supportCnt(0) // 초기값 설정, 실제 값은 나중에 설정됩니다.
-//                .achievementRate(achieveRate)
-//                .wishlistCnt(wishlistRepository.countByFunding(funding))
-//                .thumbnailImgUrl(thumbnailImgUrl)
-//                .build();
-//    }
-
-//    public FundingDTO convertToFundingDTO(Funding funding) {
-//        String thumbnailImgUrl = null;
-//        try {
-//            thumbnailImgUrl = s3Service.getThumbnailByFundingId(funding.getId());
-//        } catch(Exception e) {
-//            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-//        }
-//        double achieveRate = CommonUtils.calculateAchievementRate(funding.getCurrentAmount(), funding.getTargetAmount());
-//
-//        FundingDTO dto = new FundingDTO();
-//        dto.setId(funding.getId());
-//        dto.setFundingTitle(funding.getFundingTitle());
-//        dto.setMakerNick(funding.getMaker().getUser().getUserNick());
-//        dto.setAchievementRate(achieveRate);
-//        dto.setWishlistCnt(wishlistRepository.countByFunding(funding));
-//        dto.setThumbnailImgUrl(thumbnailImgUrl);
-//        // supportCnt 계산 로직
-//        int supportCnt = getFundingSupportUserCounts(funding.getId());
-//        dto.setSupportCnt(supportCnt);
-//
-//        return dto;
-//    }
 
     // FundingList -> FundingDTOList 변환 메소드
     public ResponseEntity<List<FundingDTO>> convertToFundingDTOList(List<Funding> fundingList) {
@@ -202,7 +160,6 @@ public class FundingService {
         if (fundingId < 1) {
             return Const.FAIL;
         }
-
         return fundingSupportRepository.countDistinctUsersByFundingId(fundingId);
     }
 
@@ -220,7 +177,10 @@ public class FundingService {
                 new IllegalArgumentException("서브 카테고리를 찾을 수 없습니다. ID: " + subCategoryId));
 
         Maker maker = funding.getMaker();
-        String makerProfileImgUrl = s3Service.getProfileImgByUserId(maker.getUser().getId()).getSignedUrl();
+        String makerProfileImgUrl = null;
+        try {
+            makerProfileImgUrl = s3Service.getProfileImgByUserId(maker.getUser().getId()).getSignedUrl();
+        } catch(Exception e) { e.printStackTrace(); }
 
         boolean isFollowing;
         if(userId < 1) { isFollowing = false; }
@@ -263,17 +223,39 @@ public class FundingService {
 
     // 펀딩id별 펀딩 디테일 페이지의 썸네일 및 펀딩 디테일 이미지 리스트 담은 FundingImgListDTO 반환 메소드
     public FundingImgListDTO getFundingImgList(int fundingId) {
-        String thumbnailUrl = s3Service.getThumbnailByFundingId(fundingId).getSignedUrl();
-        List<FileDTO> detailFileDTOList = s3Service.getDetailImgListByFundingId(fundingId);
-        List<String> detailImgUrlList = new ArrayList<>();
-        for(FileDTO fileDTO : detailFileDTOList) {
-            detailImgUrlList.add(fileDTO.getSignedUrl());
-        }
+        String thumbnailUrl = null;
+        try {
+            thumbnailUrl = s3Service.getThumbnailByFundingId(fundingId).getSignedUrl();
+        } catch(Exception e) { e.printStackTrace(); }
+        System.out.println("thumbnail: " + thumbnailUrl);
+        String detailImgUrl = null;
+        try {
+            detailImgUrl = s3Service.getDetailImgByFundingId(fundingId).getSignedUrl();
+        } catch(Exception e) { e.printStackTrace();}
+
         return FundingImgListDTO.builder()
                 .thumbnailImgUrl(thumbnailUrl)
-                .detailImgUrlList(detailImgUrlList)
+                .detailImgUrl(detailImgUrl)
                 .build();
     }
+
+//    public FundingImgListDTO getFundingImgList(int fundingId) {
+//        String thumbnailUrl = null;
+//        try {
+//            thumbnailUrl = s3Service.getThumbnailByFundingId(fundingId).getSignedUrl();
+//        } catch(Exception e) { e.printStackTrace(); }
+//        System.out.println("thumbnail: " + thumbnailUrl);
+//        FileDTO detailFileDTO = s3Service.getFilesById()
+////        List<FileDTO> detailFileDTOList = s3Service.getDetailImgListByFundingId(fundingId);
+////        List<String> detailImgUrlList = new ArrayList<>();
+////        for(FileDTO fileDTO : detailFileDTOList) {
+////            detailImgUrlList.add(fileDTO.getSignedUrl());
+////        }
+//        return FundingImgListDTO.builder()
+//                .thumbnailImgUrl(thumbnailUrl)
+//                .detailImgUrlList(detailImgUrlList)
+//                .build();
+//    }
 
     // mainCategoryId별 FundingDTO 리스트 반환 메소드
     public Page<FundingDTO> getFundingDTOPageByMainCategoryId(int mainCategoryId, Pageable pageable) {
@@ -284,7 +266,6 @@ public class FundingService {
                 .toList();
 
         // 2. SubCategory ID 리스트로 Funding 엔티티 페이징 조회
-//        Page<Funding> fundingPage = fundingRepository.findAllBySubCategory_IdIn(subCategoryIdList, pageable);
         Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
         Page<Funding> fundingPage = fundingRepository.findAllBySubCategory_IdIn(subCategoryIdList, pageableWithoutSort);
 
@@ -322,6 +303,33 @@ public class FundingService {
         return new PageImpl<>(fundingDTOs, pageable, fundingPage.getTotalElements());
     }
 
+    // title String값을 포함한 FundingTitle값을 가지고 있는 펀딩 프로젝트 반환 메소드
+    public Page<FundingDTO> searchByTitle(String title, Pageable pageable) {
+        Page<Object[]> resultPage = fundingRepository.findByFundingTitleContainingAndIsPublishedTrueOrderBySupportCount(title, pageable);
+
+        return resultPage.map(objects -> {
+            Funding funding = (Funding) objects[0];
+            Long supportCount = (Long) objects[1];
+
+            FundingDTO dto = convertToFundingDTO(funding);
+            dto.setSupportCnt(supportCount.intValue());
+            return dto;
+        });
+    }
+
+    public Page<FundingDTO> getFundingsOrderBySupporterCount(Pageable pageable) {
+        LocalDateTime currentDate = LocalDateTime.now();
+        Page<Object[]> fundingPage = fundingRepository.findAllPublishedWithSupporterCount(pageable, currentDate);
+
+        return fundingPage.map(objects -> {
+            Funding funding = (Funding) objects[0];
+            Integer supportCount = (Integer) objects[1];
+
+            FundingDTO dto = convertToFundingDTO(funding);
+            dto.setSupportCnt(supportCount);
+            return dto;
+        });
+    }
 
     // FundingList를 FundingDTO로 변환하고 참여자 수 계산하여 참여자 수를 기준으로 내림차순 정렬
 //    private List<FundingDTO> getFundingDTOListOrderBySupportCnt(List<Funding> fundingList) {

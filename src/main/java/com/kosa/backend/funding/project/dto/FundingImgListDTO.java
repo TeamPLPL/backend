@@ -14,4 +14,5 @@ import java.util.List;
 public class FundingImgListDTO {
     private String thumbnailImgUrl;
     private List<String> detailImgUrlList;
+    private String detailImgUrl;
 }
