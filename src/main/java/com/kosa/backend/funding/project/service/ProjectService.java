@@ -1,11 +1,7 @@
 package com.kosa.backend.funding.project.service;
 
 import com.kosa.backend.common.dto.FileDTO;
-import com.kosa.backend.common.entity.Files;
-import com.kosa.backend.common.entity.enums.ImgType;
-import com.kosa.backend.common.repository.FilesRepository;
 import com.kosa.backend.common.service.S3CustomService;
-import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.funding.project.dto.*;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectInfoDTO;
@@ -18,7 +14,6 @@ import com.kosa.backend.funding.project.entity.enums.MakerType;
 import com.kosa.backend.funding.project.repository.*;
 import com.kosa.backend.user.dto.MakerDTO;
 import com.kosa.backend.user.entity.Maker;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,9 +30,6 @@ public class ProjectService {
     private final PersoanlMakerRepository persoanlMakerRepository;
     private final BusinessMakerRepository businessMakerRepository;
     private final RewardInfoRepository rewardInfoRepository;
-    private final FilesRepository filesRepository;
-    private final S3Service s3Service;
-    private final MainCategoryRepository mainCategoryRepository;
     private final S3CustomService s3CustomService;
 
     // 프로젝트 작성한 사용자 가져오기
@@ -75,6 +67,22 @@ public class ProjectService {
         return fundingRepository.save(funding).getId();
     }
 
+    // 프로젝트 입력(펀딩 시작일, 펀딩 종료일)
+    @Transactional
+    public int updateSchedule(RequestProjectScheduleDTO projectScheduleDTO, int projectId) {
+        // 1. 기존 Funding 객체 조회
+        Funding funding = fundingRepository.findById(projectId).orElseThrow(() ->
+                new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
+
+        // 2. 필요한 필드(펀딩 시작일, 펀딩 종료일)만 업데이트
+        funding.updateFundingStartDate(projectScheduleDTO.getFundingStartDate());
+        funding.updateFundingEndDate(projectScheduleDTO.getFundingEndDate());
+
+        // 5. 저장
+        return fundingRepository.save(funding).getId();
+    }
+
+    // 프로젝트 데이터 모두 가져오는 로직
     @Transactional
     public ResponseProjectDTO getProject(int projectId) {
         // 1. 기존 Funding 객체 조회
@@ -140,15 +148,9 @@ public class ProjectService {
         }
         responseDTO.setRewards(rewardDTOList);
 
-        // rewardInfoList 불러오기
-        List<RewardInfo> rewardInfoList = rewardInfoRepository.findByFunding(funding);
-        List<RewardInfoDTO> rewardInfoDTOList = new ArrayList<>();
-        if (rewardInfoList != null) {
-            for (RewardInfo rewardInfo : rewardInfoList) {
-                rewardInfoDTOList.add(RewardInfoDTO.fromEntity(rewardInfo));
-            }
-        }
-        responseDTO.setRewardInfo(rewardInfoDTOList);
+        // rewardInfo 불러오기
+        RewardInfo rewardInfo = rewardInfoRepository.findByFundingId(funding.getId());
+        if (rewardInfo != null) responseDTO.setRewardInfo(RewardInfoDTO.fromEntity(rewardInfo));
 
         // Files 불러오기
         FileDTO thumbnail = s3CustomService.getThumbnailByFundingId(funding.getId());
@@ -164,7 +166,7 @@ public class ProjectService {
         return responseDTO;
     }
 
-
+    // 프로젝트 List로 모든 데이터 가져오는 로직
     @Transactional
     public List<ResponseProjectDTO> getAllProjects(Maker maker) {
         // 1. 모든 Funding 객체 조회
@@ -206,17 +208,9 @@ public class ProjectService {
             }
             responseDTO.setRewards(rewardDTOList);
 
-            // rewardInfoList 불러오기
-            List<RewardInfo> rewardInfoList = rewardInfoRepository.findByFunding(funding);
-            List<RewardInfoDTO> rewardInfoDTOList = new ArrayList<>();
-            if (rewardInfoList != null) {
-                for (RewardInfo rewardInfo : rewardInfoList) {
-                    if (rewardInfo != null) {
-                        rewardInfoDTOList.add(RewardInfoDTO.fromEntity(rewardInfo));
-                    }
-                }
-            }
-            responseDTO.setRewardInfo(rewardInfoDTOList);
+            // rewardInfo 불러오기
+            RewardInfo rewardInfo = rewardInfoRepository.findByFundingId(funding.getId());
+            if (rewardInfo != null) responseDTO.setRewardInfo(RewardInfoDTO.fromEntity(rewardInfo));
 
             // Files 불러오기
             FileDTO thumbnail = s3CustomService.getThumbnailByFundingId(funding.getId());
@@ -282,23 +276,6 @@ public class ProjectService {
         return responseDTO;
     }
 
-
-
-    // 프로젝트 입력(펀딩 시작일, 펀딩 종료일)
-    @Transactional
-    public int updateSchedule(RequestProjectScheduleDTO projectScheduleDTO, int projectId) {
-        // 1. 기존 Funding 객체 조회
-        Funding funding = fundingRepository.findById(projectId).orElseThrow(() ->
-                new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
-
-        // 2. 필요한 필드(펀딩 시작일, 펀딩 종료일)만 업데이트
-        funding.updateFundingStartDate(projectScheduleDTO.getFundingStartDate());
-        funding.updateFundingEndDate(projectScheduleDTO.getFundingEndDate());
-
-        // 5. 저장
-        return fundingRepository.save(funding).getId();
-    }
-
     // 프로젝트 정보 입력
     @Transactional
     public int updateInfo(RequestProjectInfoDTO projectInfoDTO, int projectId) {
@@ -319,17 +296,15 @@ public class ProjectService {
             funding.updateFundingExplanation(projectInfoDTO.getFundingExplanation());
         }
 
-        // 6. 메이커 유형 선택
+        // 5. 메이커 유형 선택
         makerType(projectInfoDTO, funding);
 
-        // 5. 필요한 필드(펀딩 태그)만 업데이트
+        // 6. 필요한 필드(펀딩 태그)만 업데이트
         if (projectInfoDTO.getFundingTag() != null && !projectInfoDTO.getFundingTag().equals("")) {
             funding.updateFundingTag(projectInfoDTO.getFundingTag());
         }
 
-        // 7. 사진 저장
-
-        // 8. 저장
+        // 7. 저장
         return fundingRepository.save(funding).getId();
     }
 
@@ -343,7 +318,7 @@ public class ProjectService {
         fundingRepository.delete(funding);
     }
 
-    // 6. 메이커 유형 선택, 메소드 분리
+    // 5. 메이커 유형 선택, 메소드 분리
     public void makerType(RequestProjectInfoDTO projectInfoDTO, Funding funding) {
         if (projectInfoDTO.getMakerType() != null && !projectInfoDTO.getMakerType().equals("")) {
             MakerType makerType = null;

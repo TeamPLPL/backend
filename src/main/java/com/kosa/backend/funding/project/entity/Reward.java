@@ -16,25 +16,20 @@ public class Reward extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(nullable = false)
     private String rewardName;
 
-    @Column(nullable = false)
     private int price;
 
-    @Column(nullable = false)
     private String explanation;
 
-    @Column(nullable = false)
     private int deliveryFee;
 
-    @Column(nullable = false)
     private LocalDateTime deliveryStartDate;
 
     private Integer quantityLimit;
 
     @ManyToOne
-    @JoinColumn(name = "funding_id", nullable = false)
+    @JoinColumn(name = "funding_id")
     private Funding funding;
 
     @Builder

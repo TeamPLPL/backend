@@ -8,6 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RequestRewardInfoDTO {
+    private int id;
     private String modelName;
     private String productMaterial;
     private String color;
@@ -15,4 +16,5 @@ public class RequestRewardInfoDTO {
     private String manufacturer;
     private String manufacturingCountry;
     private String manufactureDate;
+    private String refundsPolices;
 }

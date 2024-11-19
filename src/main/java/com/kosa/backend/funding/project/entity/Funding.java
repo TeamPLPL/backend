@@ -24,44 +24,33 @@ public class Funding extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column
     private String fundingTitle;
 
-    @Column
     private int targetAmount;
 
-    @Column
     private int currentAmount;
 
-    @Column
     private int complaintCount;
 
-    @Column
     private LocalDateTime fundingStartDate;
 
-    @Column
     private LocalDateTime fundingEndDate;
 
     @Enumerated(EnumType.STRING)
     @Column
     private MakerType makerType;
 
-    @Column
     private String repName;
 
-    @Column
     private String repEmail;
 
     @Column(nullable = true, columnDefinition = "TEXT")
     private String fundingExplanation;
 
-    @Column
     private String fundingTag;
 
-    @Column
     private boolean saveStatus;
 
-    @Column
     private boolean isPublished;
 
     private LocalDateTime publishDate;
@@ -72,7 +61,6 @@ public class Funding extends Auditable {
     @ManyToOne
     @JoinColumn(name = "sub_category_id")
     private SubCategory subCategory;
-
 
     @ManyToOne
     @JoinColumn(name = "maker_id", nullable = true)
@@ -99,11 +87,16 @@ public class Funding extends Auditable {
     @OneToMany(mappedBy = "funding", cascade = CascadeType.ALL)
     List<Files> files;
 
+    // 작성자 : 신은호, 작성 내용 : 리워드 정책, 펀딩 1:1 관계
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "funding")
+    private RewardInfo rewardInfo;
+
     // fundingTitle 업데이트 메서드
     public void updateFundingTitle(String fundingTitle) {
         this.fundingTitle = fundingTitle;
     }
 
+    // 작성자 : 신은호, 내용 : 펀딩 프로젝트 업데이트 메서드, 추후 리펙토링 예정,,,
     // targetAmount 업데이트 메서드
     public void updateTargetAmount(int targetAmount) {
         this.targetAmount = targetAmount;
@@ -157,6 +150,10 @@ public class Funding extends Auditable {
     // businessMaker 업데이트 메서드
     public void updateBusinessMaker(BusinessMaker businessMaker) {
         this.businessMaker = businessMaker;
+    }
+
+    public void updateRewardInfo(RewardInfo rewardInfo) {
+        this.rewardInfo = rewardInfo;
     }
 
     // getter 명시적 생성

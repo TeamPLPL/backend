@@ -32,8 +32,6 @@ public class ProjectApiController {
     private final UserService userService;
     private final MakerService makerService;
     private final ProjectService projectService;
-    private final RewardService rewardService;
-
 
     // 프로젝트 생성 - 시작 컨트롤러
     @GetMapping("/studio/start")
@@ -116,7 +114,7 @@ public class ProjectApiController {
         return ResponseEntity.ok(response);
     }
 
-    // 프로젝트 가져오기 컨트롤러
+    // 프로젝트 정보 가져오기 컨트롤러
     @GetMapping("/studio/{projectId}/info")
     public ResponseEntity<?> getProjectinfo(@AuthenticationPrincipal CustomUserDetails customUser,
                                         @PathVariable(name = "projectId") int projectId) {
@@ -148,7 +146,7 @@ public class ProjectApiController {
         return ResponseEntity.ok(response);
     }
 
-    // 프로젝트 가져오기 컨트롤러
+    // 사용자별 프로젝트 전부 가져오기 컨트롤러
     @GetMapping("/studio/projectslist")
     public ResponseEntity<List<ResponseProjectDTO>> getProjectsList(@AuthenticationPrincipal CustomUserDetails customUser) {
         // 로그인한 사용자 id
@@ -161,8 +159,6 @@ public class ProjectApiController {
         // 리스트를 ResponseEntity로 반환
         return ResponseEntity.ok(responseProjectDTOS);
     }
-
-
 
     // 프로젝트 생성 - 스케쥴 컨트롤러
     @PostMapping("/studio/{projectId}/schedule")
@@ -222,6 +218,7 @@ public class ProjectApiController {
                 .body(response);
     }
 
+    // 프로젝트 삭제 컨드롤러
     @GetMapping("/studio/{projectId}/delete")
     public ResponseEntity<?> delete(@PathVariable(name = "projectId") int projectId) {
         projectService.delete(projectId);

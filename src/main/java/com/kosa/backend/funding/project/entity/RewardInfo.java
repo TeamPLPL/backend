@@ -15,32 +15,25 @@ public class RewardInfo extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(nullable = false)
     private String modelName;
 
-    @Column(nullable = false)
     private String productMaterial;
 
-    @Column(nullable = false)
     private String color;
 
-    @Column(nullable = false)
     private String field;
 
-    @Column(nullable = false)
     private String manufacturer;
 
-    @Column(nullable = false)
     private String manufacturingCountry;
 
-    @Column(nullable = false)
     private String manufactureDate;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String refundsPolicies;
 
-    @ManyToOne
-    @JoinColumn(name = "funding_id", nullable = false)
+    @OneToOne
+    @JoinColumn(name = "funding_id")
     private Funding funding;
 
     @Builder
@@ -80,5 +73,34 @@ public class RewardInfo extends Auditable {
                     "6. 단순변심: 반품비 서포터 부담\n" +
                     "7. 리워드 품질 하자: 반품비 메이커 부담\n";
         }
+    }
+
+    // 각 필드에 대한 update 메서드
+    public void updateModelName(String modelName) {
+        this.modelName = modelName;
+    }
+
+    public void updateProductMaterial(String productMaterial) {
+        this.productMaterial = productMaterial;
+    }
+
+    public void updateColor(String color) {
+        this.color = color;
+    }
+
+    public void updateField(String field) {
+        this.field = field;
+    }
+
+    public void updateManufacturer(String manufacturer) {
+        this.manufacturer = manufacturer;
+    }
+
+    public void updateManufacturingCountry(String manufacturingCountry) {
+        this.manufacturingCountry = manufacturingCountry;
+    }
+
+    public void updateManufactureDate(String manufactureDate) {
+        this.manufactureDate = manufactureDate;
     }
 }

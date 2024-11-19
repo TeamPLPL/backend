@@ -22,13 +22,12 @@ public class RequestProjectInfoDTO {
 
     // 사업자 신분증
     String businessRegistNum;
-    /*String businessRegistCertif;*/
+
+    // 사업장 이름
     String companyName;
 
     // 펀딩 설명
     String fundingExplanation;
     // 펀딩 태그
     String fundingTag;
-
-    /* 펀딩 사진 들어가야함 */
 }

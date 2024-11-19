@@ -44,9 +44,8 @@ public class ResponseProjectDTO {
     private BusinessMakerDTO businessMaker;
     private PersonalMakerDTO personalMaker;
     List<RewardDTO> rewards;
-    private List<RewardInfoDTO> rewardInfo;
+    private RewardInfoDTO rewardInfo;
 
-//    List<FileDTO> imagesPath;
     private FileDTO thumbnail;
     private FileDTO detailImage;
 
@@ -55,4 +54,45 @@ public class ResponseProjectDTO {
 
     private String subCategoryName;
     private String mainCategoryName;
+
+    public boolean isIntroCompleted() {
+        return fundingTitle != null && !fundingTitle.equals("")
+                && subCategoryId > -1
+                && mainCategoryId > -1
+                && targetAmount > -1;
+    }
+
+    public boolean isScheduleComplete() {
+        return fundingStartDate != null && fundingEndDate != null;
+    }
+
+    public boolean isInfoComplete() {
+        if ("personal".equals(makerType)) { // String 비교 안전하게 처리
+            return repName != null && !repName.equals("")
+                    && repEmail != null && !repEmail.equals("")
+                    && personalMaker != null
+                    && personalMaker.getIdentityCard() != null && !personalMaker.getIdentityCard().equals("");
+        } else {
+            return repName != null && !repName.equals("")
+                    && repEmail != null && !repEmail.equals("")
+                    && businessMaker != null
+                    && businessMaker.getBusinessRegistNum() != null && !businessMaker.getBusinessRegistNum().equals("")
+                    && businessMaker.getCompanyName() != null && !businessMaker.getCompanyName().equals("");
+        }
+    }
+
+    public boolean isRewardComplete() {
+        return rewards != null && rewards.size() > 0;
+    }
+
+    public boolean isRewardInfoComplete() {
+        return rewardInfo != null
+                && rewardInfo.getModelName() != null && !rewardInfo.getModelName().equals("")
+                && rewardInfo.getProductMaterial() != null && !rewardInfo.getProductMaterial().equals("")
+                && rewardInfo.getColor() != null && !rewardInfo.getColor().equals("")
+                && rewardInfo.getField() != null && !rewardInfo.getField().equals("")
+                && rewardInfo.getManufacturer() != null && !rewardInfo.getManufacturer().equals("")
+                && rewardInfo.getManufacturingCountry() != null && !rewardInfo.getManufacturingCountry().equals("")
+                && rewardInfo.getManufactureDate() != null && !rewardInfo.getManufactureDate().equals("");
+    }
 }
