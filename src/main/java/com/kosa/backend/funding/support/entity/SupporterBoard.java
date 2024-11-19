@@ -4,9 +4,11 @@ import com.kosa.backend.common.entity.Auditable;
 import com.kosa.backend.funding.project.entity.Funding;
 import com.kosa.backend.user.entity.User;
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
+@Data
 @Entity
 @Table(name = "SUPPORTER_BOARD")
 public class SupporterBoard extends Auditable {

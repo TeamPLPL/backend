@@ -40,6 +40,29 @@ public class PaymentController {
         return ResponseEntity.ok(savedPaymentDTO);
     }
 
+    @PostMapping("/{fundingId}/update-current-amount")
+    public ResponseEntity<String> updateCurrentAmount(
+            @PathVariable("fundingId") int fundingId,
+            @RequestBody Map<String, Integer> payload) {
+
+        int calculatedAmount = payload.getOrDefault("calculatedAmount", 0); // 배송비 제외한 금액
+        paymentService.updateFundingCurrentAmount(fundingId, calculatedAmount);
+
+        return ResponseEntity.ok("Funding current amount updated successfully.");
+    }
+
+    @PostMapping("/{paymentId}/cancel")
+    public ResponseEntity<Void> cancelPayment(
+            @PathVariable("paymentId") int paymentId,
+            @RequestBody Map<String, Integer> request // 프론트에서 계산된 값 전달
+    ) {
+        int calculatedAmount = request.get("amount");
+
+        paymentService.cancelPaymentAndUpdateFunding(paymentId, calculatedAmount);
+        return ResponseEntity.ok().build();
+    }
+
+
     @PostMapping("/complete")
     public ResponseEntity<?> handlePaymentCompletion(@RequestParam("id") String id, HttpServletResponse response) throws IOException {
         // NicePay의 POST 요청을 받았는지 확인하기 위한 로그
