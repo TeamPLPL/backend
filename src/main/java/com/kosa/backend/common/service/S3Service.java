@@ -25,10 +25,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
@@ -145,6 +142,10 @@ public class S3Service {
     public List<FileDTO> getDetailImgListByFundingId(int fundingId) {
         List<Files> detailImgList = filesRepository.findAllByFundingIdAndImgTypeOrderBySequence(fundingId, ImgType.DETAIL_IMAGE);
 
+        if (detailImgList == null || detailImgList.isEmpty()) {
+            return Collections.emptyList(); // 빈 리스트 반환
+        }
+
         List<FileDTO> signedUrlList = new ArrayList<>();
         for (Files file : detailImgList) {
             String fullPath = file.getPath() + file.getSavedNm();
@@ -158,9 +159,10 @@ public class S3Service {
     }
     ///////////////////
 
-    // 펀딩ID별 썸네일 조회 메소드
-    public FileDTO getThumbnailByFundingId(int fundingId) {
-        Optional<Files> file = filesRepository.findByFundingIdAndImgType(fundingId, ImgType.THUMBNAIL);
+    // 펀딩ID별 이미지 1장 조회
+    public FileDTO getImgByFundingId(int fundingId, ImgType imgType) {
+        Optional<Files> file = filesRepository.findByFundingIdAndImgType(fundingId, imgType);
+        if(file.isEmpty()) { return FileDTO.builder().build(); }
         String signedUrl = generateSignedUrl(file.get().getPath() + file.get().getSavedNm());
         return FileDTO.builder()
                 .fileId(file.get().getId())
@@ -168,14 +170,19 @@ public class S3Service {
                 .build();
     }
 
+    // 펀딩ID별 디테일이미지(1장) 조회 메소드
+    public FileDTO getDetailImgByFundingId(int fundingId) {
+        return getImgByFundingId(fundingId, ImgType.DETAIL_IMAGE);
+    }
+
+    // 펀딩ID별 썸네일 조회 메소드
+    public FileDTO getThumbnailByFundingId(int fundingId) {
+        return getImgByFundingId(fundingId, ImgType.THUMBNAIL);
+    }
+
     // 사용자ID별 프로필이미지 조회 메소드
     public FileDTO getProfileImgByUserId(int userId) {
-        Optional<Files> file = filesRepository.findByUserIdAndImgType(userId, ImgType.PROFILE_IMAGE);
-        String signedUrl = generateSignedUrl(file.get().getPath() + file.get().getSavedNm());
-        return FileDTO.builder()
-                .fileId(file.get().getId())
-                .signedUrl(signedUrl)
-                .build();
+        return getImgByFundingId(userId, ImgType.PROFILE_IMAGE);
     }
 
     // 이미지 삭제 메소드

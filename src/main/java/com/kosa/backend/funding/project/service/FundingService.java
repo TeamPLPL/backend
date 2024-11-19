@@ -228,16 +228,34 @@ public class FundingService {
             thumbnailUrl = s3Service.getThumbnailByFundingId(fundingId).getSignedUrl();
         } catch(Exception e) { e.printStackTrace(); }
         System.out.println("thumbnail: " + thumbnailUrl);
-        List<FileDTO> detailFileDTOList = s3Service.getDetailImgListByFundingId(fundingId);
-        List<String> detailImgUrlList = new ArrayList<>();
-        for(FileDTO fileDTO : detailFileDTOList) {
-            detailImgUrlList.add(fileDTO.getSignedUrl());
-        }
+        String detailImgUrl = null;
+        try {
+            detailImgUrl = s3Service.getDetailImgByFundingId(fundingId).getSignedUrl();
+        } catch(Exception e) { e.printStackTrace();}
+
         return FundingImgListDTO.builder()
                 .thumbnailImgUrl(thumbnailUrl)
-                .detailImgUrlList(detailImgUrlList)
+                .detailImgUrl(detailImgUrl)
                 .build();
     }
+
+//    public FundingImgListDTO getFundingImgList(int fundingId) {
+//        String thumbnailUrl = null;
+//        try {
+//            thumbnailUrl = s3Service.getThumbnailByFundingId(fundingId).getSignedUrl();
+//        } catch(Exception e) { e.printStackTrace(); }
+//        System.out.println("thumbnail: " + thumbnailUrl);
+//        FileDTO detailFileDTO = s3Service.getFilesById()
+////        List<FileDTO> detailFileDTOList = s3Service.getDetailImgListByFundingId(fundingId);
+////        List<String> detailImgUrlList = new ArrayList<>();
+////        for(FileDTO fileDTO : detailFileDTOList) {
+////            detailImgUrlList.add(fileDTO.getSignedUrl());
+////        }
+//        return FundingImgListDTO.builder()
+//                .thumbnailImgUrl(thumbnailUrl)
+//                .detailImgUrlList(detailImgUrlList)
+//                .build();
+//    }
 
     // mainCategoryId별 FundingDTO 리스트 반환 메소드
     public Page<FundingDTO> getFundingDTOPageByMainCategoryId(int mainCategoryId, Pageable pageable) {
