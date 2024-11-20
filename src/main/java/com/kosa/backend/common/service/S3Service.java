@@ -159,6 +159,7 @@ public class S3Service {
     }
     ///////////////////
 
+
     // 펀딩ID별 이미지 1장 조회
     public FileDTO getImgByFundingId(int fundingId, ImgType imgType) {
         Optional<Files> file = filesRepository.findByFundingIdAndImgType(fundingId, imgType);

@@ -9,11 +9,11 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Builder
 @AllArgsConstructor
 public class RequestProjectIntroDTO {
     private String fundingTitle;
-    private String subCategory;
-    private String mainCategory;
+    private int subCategory;
+    private int targetAmount;
 }

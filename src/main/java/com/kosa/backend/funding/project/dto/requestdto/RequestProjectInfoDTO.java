@@ -1,13 +1,16 @@
-package com.kosa.backend.funding.project.dto.responsedto;
+package com.kosa.backend.funding.project.dto.requestdto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
-public class ResponseProjectInfoDTO {
-    // 메이켜 유형
+public class RequestProjectInfoDTO {
+    // 메이커 유형
     String makerType;
 
     // 대표자 이름, 이메일
@@ -19,12 +22,12 @@ public class ResponseProjectInfoDTO {
 
     // 사업자 신분증
     String businessRegistNum;
-    String businessRegistCertif;
+
+    // 사업장 이름
     String companyName;
 
     // 펀딩 설명
     String fundingExplanation;
-
     // 펀딩 태그
     String fundingTag;
 }

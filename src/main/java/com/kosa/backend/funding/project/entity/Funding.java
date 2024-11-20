@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Setter
 @Getter
 @Builder
 @AllArgsConstructor
@@ -25,44 +24,33 @@ public class Funding extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(nullable = true)
     private String fundingTitle;
 
-    @Column(nullable = true)
     private int targetAmount;
 
-    @Column(nullable = true)
     private int currentAmount;
 
-    @Column(nullable = true)
     private int complaintCount;
 
-    @Column(nullable = true)
     private LocalDateTime fundingStartDate;
 
-    @Column(nullable = true)
     private LocalDateTime fundingEndDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = true)
+    @Column
     private MakerType makerType;
 
-    @Column(nullable = true)
     private String repName;
 
-    @Column(nullable = true)
     private String repEmail;
 
     @Column(nullable = true, columnDefinition = "TEXT")
     private String fundingExplanation;
 
-    @Column(nullable = true)
     private String fundingTag;
 
-    @Column(nullable = true)
     private boolean saveStatus;
 
-    @Column(nullable = true)
     private boolean isPublished;
 
     private LocalDateTime publishDate;
@@ -73,7 +61,6 @@ public class Funding extends Auditable {
     @ManyToOne
     @JoinColumn(name = "sub_category_id")
     private SubCategory subCategory;
-
 
     @ManyToOne
     @JoinColumn(name = "maker_id", nullable = true)
@@ -99,4 +86,78 @@ public class Funding extends Auditable {
 
     @OneToMany(mappedBy = "funding", cascade = CascadeType.ALL)
     List<Files> files;
+
+    // 작성자 : 신은호, 작성 내용 : 리워드 정책, 펀딩 1:1 관계
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "funding")
+    private RewardInfo rewardInfo;
+
+    // fundingTitle 업데이트 메서드
+    public void updateFundingTitle(String fundingTitle) {
+        this.fundingTitle = fundingTitle;
+    }
+
+    // 작성자 : 신은호, 내용 : 펀딩 프로젝트 업데이트 메서드, 추후 리펙토링 예정,,,
+    // targetAmount 업데이트 메서드
+    public void updateTargetAmount(int targetAmount) {
+        this.targetAmount = targetAmount;
+    }
+
+    // fundingStartDate 업데이트 메서드
+    public void updateFundingStartDate(LocalDateTime fundingStartDate) {
+        this.fundingStartDate = fundingStartDate;
+    }
+
+    // fundingEndDate 업데이트 메서드
+    public void updateFundingEndDate(LocalDateTime fundingEndDate) {
+        this.fundingEndDate = fundingEndDate;
+    }
+
+    // makerType 업데이트 메서드
+    public void updateMakerType(MakerType makerType) {
+        this.makerType = makerType;
+    }
+
+    // repName 업데이트 메서드
+    public void updateRepName(String repName) {
+        this.repName = repName;
+    }
+
+    // repEmail 업데이트 메서드
+    public void updateRepEmail(String repEmail) {
+        this.repEmail = repEmail;
+    }
+
+    // fundingExplanation 업데이트 메서드
+    public void updateFundingExplanation(String fundingExplanation) {
+        this.fundingExplanation = fundingExplanation;
+    }
+
+    // fundingTag 업데이트 메서드
+    public void updateFundingTag(String fundingTag) {
+        this.fundingTag = fundingTag;
+    }
+
+    // subCategory 업데이트 메서드
+    public void updateSubCategory(SubCategory subCategory) {
+        this.subCategory = subCategory;
+    }
+
+    // personalMaker 업데이트 메서드
+    public void updatePersoanlMaker(PersonalMaker personalMaker) {
+        this.personalMaker = personalMaker;
+    }
+
+    // businessMaker 업데이트 메서드
+    public void updateBusinessMaker(BusinessMaker businessMaker) {
+        this.businessMaker = businessMaker;
+    }
+
+    public void updateRewardInfo(RewardInfo rewardInfo) {
+        this.rewardInfo = rewardInfo;
+    }
+
+    // getter 명시적 생성
+    public boolean getSaveStatus() {
+        return saveStatus;
+    }
 }

@@ -1,5 +1,6 @@
 package com.kosa.backend.funding.project.dto;
 
+import com.kosa.backend.funding.project.entity.Reward;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,5 +30,16 @@ public class RewardDTO {
         this.deliveryStartDate = deliveryStartDate;
         this.deliveryFee = deliveryFee;
         this.count = count;
+    }
+
+    public static RewardDTO fromEntity(Reward reward) {
+        return RewardDTO.builder()
+                .rewardId(reward.getId())
+                .rewardName(reward.getRewardName())
+                .price(reward.getPrice())
+                .explanation(reward.getExplanation())
+                .deliveryFee(reward.getDeliveryFee())
+                .quantityLimit(reward.getQuantityLimit())
+                .build();
     }
 }
