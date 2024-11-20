@@ -25,9 +25,34 @@ public class CouponController {
 
     // 쿠폰 추가
     @PostMapping("/add")
-    public ResponseEntity<CouponDTO> addCoupon(@RequestBody CouponDTO couponDTO) {
+    public ResponseEntity<CouponDTO> addCoupon(
+            @RequestBody CouponDTO couponDTO,
+            @AuthenticationPrincipal CustomUserDetails cud) {
+
+        String userEmail = cud.getUsername();
+        User user = userService.getUser(userEmail);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        couponDTO.setUserId(user.getId());
         CouponDTO savedCoupon = couponService.addCoupon(couponDTO);
         return ResponseEntity.ok(savedCoupon);
+    }
+
+    // 특정 유저의 쿠폰 개수 조회
+    @GetMapping("/count")
+    public ResponseEntity<Integer> getUnusedCouponCountByUserId(@AuthenticationPrincipal CustomUserDetails cud) {
+        String userEmail = cud.getUsername();
+        User user = userService.getUser(userEmail);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        int unusedCouponCount = couponService.getUnusedCouponCountByUserId(user.getId());
+        return ResponseEntity.ok(unusedCouponCount);
     }
 
     // 특정 유저의 쿠폰 조회
