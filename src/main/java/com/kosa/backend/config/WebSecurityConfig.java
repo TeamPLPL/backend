@@ -100,7 +100,8 @@ public class WebSecurityConfig {
                                 , "/api/signup"
                                 , "/api/user"
                                 , "/oauth2/**"
-                                , "/login/oauth2/**").permitAll()
+                                , "/login/oauth2/**"
+                                ,"/api/auth/email").permitAll()
                         .requestMatchers("/api/admind/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 );
