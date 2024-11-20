@@ -23,15 +23,8 @@ VALUES (NOW(), NULL, '테크·가전'),
        (NOW(), NULL, '디자인'),
        (NOW(), NULL, '반려동물'),
        (NOW(), NULL, '아트'),
-       (NOW(), NULL, '캐릭터·굿즈'),
-       (NOW(), NULL, '영화·음악'),
-       (NOW(), NULL, '키즈'),
-       (NOW(), NULL, '게임'),
-       (NOW(), NULL, '만화·웹툰'),
-       (NOW(), NULL, '사진'),
-       (NOW(), NULL, '여행'),
-       (NOW(), NULL, '자동차'),
-       (NOW(), NULL, '소셜');
+       (NOW(), NULL, '캐릭터·굿즈');
+
 
 -- 서브 카테고리
 INSERT INTO board.sub_category (main_category_id, created_at, updated_at, sub_category_name)
@@ -44,8 +37,6 @@ VALUES
 (1, NOW(), NULL, '엔터테인먼트가전'),
 (1, NOW(), NULL, '웨어러블'),
 (1, NOW(), NULL, '주변기기'),
-(1, NOW(), NULL, '로봇'),
-(1, NOW(), NULL, 'App·Web'),
 
 -- 패션 (main_category_id = 2)
 (2, NOW(), NULL, '의류'),
@@ -53,10 +44,9 @@ VALUES
 (2, NOW(), NULL, '주얼리'),
 (2, NOW(), NULL, '가방'),
 (2, NOW(), NULL, '신발'),
-(2, NOW(), NULL, '아이웨어'),
 (2, NOW(), NULL, '언더웨어'),
 (2, NOW(), NULL, '키즈'),
-(2, NOW(), NULL, '럭셔리'),
+
 
 -- 뷰티 (main_category_id = 3)
 (3, NOW(), NULL, '스킨케어'),
@@ -65,14 +55,8 @@ VALUES
 (3, NOW(), NULL, '선케어'),
 (3, NOW(), NULL, '메이크업'),
 (3, NOW(), NULL, '클렌징'),
-(3, NOW(), NULL, '네일'),
 (3, NOW(), NULL, '향수'),
-(3, NOW(), NULL, '비건'),
-(3, NOW(), NULL, '구강용품'),
-(3, NOW(), NULL, '위생용품'),
-(3, NOW(), NULL, '성 웰니스'),
-(3, NOW(), NULL, '뷰티서비스'),
-(3, NOW(), NULL, '뷰티디바이스'),
+
 
 -- 홈·리빙 (main_category_id = 4)
 (4, NOW(), NULL, '침실'),
@@ -80,10 +64,6 @@ VALUES
 (4, NOW(), NULL, '주방'),
 (4, NOW(), NULL, '청소·세탁'),
 (4, NOW(), NULL, '인테리어'),
-(4, NOW(), NULL, 'DIY'),
-(4, NOW(), NULL, '인센스·방향제'),
-(4, NOW(), NULL, '화훼·원예'),
-(4, NOW(), NULL, '홈케어서비스'),
 
 -- 스포츠·아웃도어 (main_category_id = 5)
 (5, NOW(), NULL, '캠핑'),
@@ -92,17 +72,8 @@ VALUES
 (5, NOW(), NULL, '러닝'),
 (5, NOW(), NULL, '테니스'),
 (5, NOW(), NULL, '헬스'),
-(5, NOW(), NULL, '홈트레이닝'),
-(5, NOW(), NULL, '등산'),
-(5, NOW(), NULL, '낚시'),
-(5, NOW(), NULL, '스포츠 레슨'),
 
 -- 푸드 (main_category_id = 6)
-(6, NOW(), NULL, '산지직송'),
-(6, NOW(), NULL, '로컬맛집'),
-(6, NOW(), NULL, '해외수입'),
-(6, NOW(), NULL, '비건'),
-(6, NOW(), NULL, '레스토랑'),
 (6, NOW(), NULL, '간편식'),
 (6, NOW(), NULL, '헬스·이너뷰티'),
 (6, NOW(), NULL, '소스·조미료'),
@@ -136,11 +107,9 @@ VALUES
 (9, NOW(), NULL, '그래픽디자인'),
 (9, NOW(), NULL, '템플릿'),
 (9, NOW(), NULL, '공공디자인'),
-(9, NOW(), NULL, '디자인 NFT'),
 (9, NOW(), NULL, '공예'),
 (9, NOW(), NULL, '소품'),
 (9, NOW(), NULL, '뜨개질'),
-(9, NOW(), NULL, 'DIY'),
 
 -- 반려동물 (main_category_id = 10)
 (10, NOW(), NULL, '강아지'),
@@ -162,57 +131,7 @@ VALUES
 (12, NOW(), NULL, '만화'),
 (12, NOW(), NULL, 'TV·영화'),
 (12, NOW(), NULL, '브랜드'),
-(12, NOW(), NULL, '크리에이터'),
-
--- 영화·음악 (main_category_id = 13)
-(13, NOW(), NULL, '영화'),
-(13, NOW(), NULL, '음악'),
-(13, NOW(), NULL, '악기'),
-(13, NOW(), NULL, '댄스'),
-(13, NOW(), NULL, '콘텐츠 NFT'),
-(13, NOW(), NULL, '공연·페스티벌'),
-
--- 키즈 (main_category_id = 14)
-(14, NOW(), NULL, '의류'),
-(14, NOW(), NULL, '출산·육아용품'),
-(14, NOW(), NULL, '액세서리'),
-(14, NOW(), NULL, '장난감'),
-(14, NOW(), NULL, '교구·문구'),
-(14, NOW(), NULL, '체험'),
-
--- 게임 (main_category_id = 15)
-(15, NOW(), NULL, '보드게임'),
-(15, NOW(), NULL, '게임기기'),
-
--- 만화·웹툰 (main_category_id = 16)
-(16, NOW(), NULL, '만화책'),
-(16, NOW(), NULL, '웹툰'),
-(16, NOW(), NULL, '만화 페스티벌'),
-
--- 사진 (main_category_id = 17)
-(17, NOW(), NULL, '사진책'),
-(17, NOW(), NULL, '촬영스튜디오'),
-(17, NOW(), NULL, '사진 NFT'),
-
--- 여행 (main_category_id = 18)
-(18, NOW(), NULL, '국내여행'),
-(18, NOW(), NULL, '해외여행'),
-(18, NOW(), NULL, '호텔·숙박'),
-(18, NOW(), NULL, '액티비티'),
-(18, NOW(), NULL, '여행용품'),
-
--- 자동차 (main_category_id = 19)
-(19, NOW(), NULL, '관리·세차용품'),
-(19, NOW(), NULL, '전자기기'),
-(19, NOW(), NULL, '실내용품'),
-(19, NOW(), NULL, '바이크'),
-(19, NOW(), NULL, '모빌리티'),
-(19, NOW(), NULL, '렌트'),
-
--- 소셜 (main_category_id = 20)
-(20, NOW(), NULL, '캠페인'),
-(20, NOW(), NULL, '커뮤니티모임'),
-(20, NOW(), NULL, '후원');
+(12, NOW(), NULL, '크리에이터');
 
 
 INSERT INTO board.funding (business_maker_id, complaint_count, current_amount, funding_support_id, is_published, maker_id, personal_maker_id, sub_category_id, target_amount, created_at, funding_end_date, funding_start_date, publish_date, updated_at, funding_explanation, funding_tag, funding_title, rep_email, rep_name, maker_type, save_status)
