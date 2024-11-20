@@ -133,7 +133,7 @@ public class PaymentService {
 
         // 기존 모금액에 배송비 제외된 계산값만 추가
         int newAmount = funding.getCurrentAmount() + calculatedAmount;
-        funding.setCurrentAmount(newAmount);
+        funding.updateCurrentAmount(newAmount);
 
         fundingRepository.save(funding);
     }
@@ -155,7 +155,7 @@ public class PaymentService {
         if (updatedAmount < 0) {
             throw new RuntimeException("금액이 0보다 작아질 수 없습니다.");
         }
-        funding.setCurrentAmount(updatedAmount);
+        funding.updateCurrentAmount(updatedAmount);
 
         // 4. Funding 및 Payment 상태 업데이트
         fundingRepository.save(funding);
