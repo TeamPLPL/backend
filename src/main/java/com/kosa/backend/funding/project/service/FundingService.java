@@ -1,6 +1,5 @@
 package com.kosa.backend.funding.project.service;
 
-import com.kosa.backend.common.dto.FileDTO;
 import com.kosa.backend.common.entity.Const;
 import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.funding.project.dto.*;
@@ -10,7 +9,9 @@ import com.kosa.backend.funding.project.entity.SubCategory;
 import com.kosa.backend.funding.project.repository.FundingRepository;
 import com.kosa.backend.funding.project.repository.MainCategoryRepository;
 import com.kosa.backend.funding.project.repository.SubCategoryRepository;
+import com.kosa.backend.funding.support.entity.FundingNotice;
 import com.kosa.backend.funding.support.repository.FollowRepository;
+import com.kosa.backend.funding.support.repository.FundingNoticeRepository;
 import com.kosa.backend.funding.support.repository.FundingSupportRepository;
 import com.kosa.backend.funding.support.repository.WishlistRepository;
 import com.kosa.backend.user.dto.FundingMakerDTO;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,6 +39,7 @@ public class FundingService {
     private final FundingSupportRepository fundingSupportRepository;
     private final WishlistRepository wishlistRepository;
     private final FollowRepository followRepository;
+    private final FundingNoticeRepository fundingNoticeRepository;
 
     // 메인 카테고리 리스트 조회
     public List<MainCategoryDTO> getMainCategories() {
@@ -193,6 +196,7 @@ public class FundingService {
                 .userNick(maker.getUser().getUserNick())
                 .profileImgUrl(makerProfileImgUrl)
                 .isFollowing(isFollowing)
+                .makerEmail(maker.getUser().getEmail())
                 .build();
 
         boolean isWishlist;
@@ -343,12 +347,57 @@ public class FundingService {
 //                }).sorted((a, b) -> Integer.compare(b.getSupportCnt(), a.getSupportCnt())).collect(Collectors.toList());
 //    }
 
-//    public Page<FundingDTO> searchByContent(String content, int page, int size){
-//        // null 에러 방지용 초기화
-//        if(content == null) content = "";
-//
-//        PageRequest pageRequest = PageRequest.of(page - 1, size, Sort.by("questionId").descending());
-//        Page<Question> byTitleContaining = questionRepository.findByTitleContaining(title, pageRequest);
-//        return byTitleContaining;
-//    }
+    // 펀딩ID별 공지사항 페이지네이션 리스트 반환
+    public Page<FundingNoticeDTO> getFundingNoticeDTOList(int fundingId, Pageable pageable) {
+        Page<FundingNotice> noticePage = fundingNoticeRepository.findByFundingIdOrderByUpdatedAtDesc(fundingId, pageable);
+        return noticePage.map(this::convertToFundingNoticeDTO);
+    }
+
+    private FundingNoticeDTO convertToFundingNoticeDTO(FundingNotice notice) {
+        return FundingNoticeDTO.builder()
+                .noticeId(notice.getId())
+                .noticeCategoryId(Const.SUCCESS)
+                .noticeTitle(notice.getNoticeTitle())
+                .noticeDate(notice.getNoticeDate())
+                .noticeContent(notice.getNoticeContent())
+                .fundingId(notice.getFunding().getId())
+                .updateDate(notice.getUpdatedAt())
+                .build();
+    }
+
+    // 펀딩ID에 따른 펀딩 변수 반환
+    public Funding getFundingById(int fundingId) {
+        return fundingRepository.findById(fundingId).orElse(null);
+    }
+
+    public void saveNewFundingNotice(Funding funding, FundingNoticeDTO fnDTO) {
+        LocalDateTime now = LocalDateTime.now();
+
+        FundingNotice fn = FundingNotice.builder()
+                .funding(funding)
+                .noticeCategoryId(Const.SUCCESS)
+                .noticeTitle(fnDTO.getNoticeTitle())
+                .noticeContent(fnDTO.getNoticeContent())
+                .noticeDate(now)
+                .build();
+
+        fundingNoticeRepository.save(fn);
+    }
+
+    public FundingNoticeDTO getFundingnoticeDTO(int noticeId) {
+        FundingNotice fn = fundingNoticeRepository.findById(noticeId).orElse(null);
+        if(fn == null) { return null; }
+        return convertToFundingNoticeDTO(fn);
+    }
+
+    public void updateFundingNotice(FundingNoticeDTO fnDTO) {
+        FundingNotice fn = fundingNoticeRepository.findById(fnDTO.getNoticeId()).orElseThrow();
+        fn.setNoticeTitle(fnDTO.getNoticeTitle());
+        fn.setNoticeContent(fnDTO.getNoticeContent());
+        fundingNoticeRepository.save(fn);
+    }
+
+    public void deleteFundingNotice(int noticeId) {
+        fundingNoticeRepository.deleteById(noticeId);
+    }
 }
