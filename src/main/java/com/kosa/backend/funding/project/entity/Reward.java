@@ -16,25 +16,20 @@ public class Reward extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(nullable = false)
     private String rewardName;
 
-    @Column(nullable = false)
     private int price;
 
-    @Column(nullable = false)
     private String explanation;
 
-    @Column(nullable = false)
     private int deliveryFee;
 
-    @Column(nullable = false)
     private LocalDateTime deliveryStartDate;
 
     private Integer quantityLimit;
 
     @ManyToOne
-    @JoinColumn(name = "funding_id", nullable = false)
+    @JoinColumn(name = "funding_id")
     private Funding funding;
 
     @Builder
@@ -51,7 +46,6 @@ public class Reward extends Auditable {
 
     public static Reward toSaveEntity(RequestRewardDTO rewardDTO, Funding funding) {
         return Reward.builder()
-                .id(rewardDTO.getId())
                 .rewardName(rewardDTO.getRewardName())
                 .price(rewardDTO.getPrice())
                 .explanation(rewardDTO.getExplanation())
@@ -61,5 +55,4 @@ public class Reward extends Auditable {
                 .funding(funding)
                 .build();
     }
-
 }

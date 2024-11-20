@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RequestRewardDTO {
-    private int id;
     private String rewardName;
     private int price;
     private String explanation;

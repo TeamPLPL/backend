@@ -32,4 +32,5 @@ public class SubCategory extends Auditable {
         subCategory.setSubCategoryName(subCategoryName);
         return subCategory;
     }
+
 }
