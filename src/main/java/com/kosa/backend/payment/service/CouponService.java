@@ -10,6 +10,7 @@ import com.kosa.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -30,13 +31,18 @@ public class CouponService {
         Coupon coupon = new Coupon();
         coupon.setCouponName(couponDTO.getCouponName());
         coupon.setDiscountRate(couponDTO.getDiscountRate());
-        coupon.setIssueDate(couponDTO.getIssueDate());
+        coupon.setIssueDate(couponDTO.getIssueDate() != null ? couponDTO.getIssueDate() : LocalDateTime.now()); // 기본값 설정
         coupon.setUser(user);
 
         Coupon savedCoupon = couponRepository.save(coupon);
 
         // 저장된 Coupon을 DTO로 변환
         return mapToDTO(savedCoupon);
+    }
+
+    // 유저별 쿠폰 개수 조회
+    public int getUnusedCouponCountByUserId(int userId) {
+        return couponRepository.countUnusedCouponsByUserId(userId);
     }
 
     // 특정 유저의 쿠폰 조회

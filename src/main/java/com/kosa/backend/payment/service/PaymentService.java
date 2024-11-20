@@ -125,6 +125,43 @@ public class PaymentService {
         return mapToDTO(savedPayment, funding, paymentDTO.getRewards());
     }
 
+    // 구매를 결정하면 해당 펀딩의 모금액이 리워드 가격 + 추가 후원금만큼 쌓인다.
+    @Transactional
+    public void updateFundingCurrentAmount(int fundingId, int calculatedAmount) {
+        Funding funding = fundingRepository.findById(fundingId)
+                .orElseThrow(() -> new IllegalArgumentException("Funding not found"));
+
+        // 기존 모금액에 배송비 제외된 계산값만 추가
+        int newAmount = funding.getCurrentAmount() + calculatedAmount;
+        funding.setCurrentAmount(newAmount);
+
+        fundingRepository.save(funding);
+    }
+
+    // 환불을 결정하면 해당 펀딩의 모금액이 리워드 가격 + 추가 후원금만큼 빠져나간다.
+    @Transactional
+    public void cancelPaymentAndUpdateFunding(int paymentId, int calculatedAmount) {
+        // 1. 결제 정보 조회
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("결제 정보를 찾을 수 없습니다: " + paymentId));
+
+        // 2. Funding 정보 조회
+        PaymentHistory paymentHistory = paymentHistoryRepository.findByPayment(payment)
+                .orElseThrow(() -> new RuntimeException("결제 내역을 찾을 수 없습니다."));
+        Funding funding = paymentHistory.getFunding();
+
+        // 3. Funding의 currentAmount 감소
+        int updatedAmount = funding.getCurrentAmount() - calculatedAmount;
+        if (updatedAmount < 0) {
+            throw new RuntimeException("금액이 0보다 작아질 수 없습니다.");
+        }
+        funding.setCurrentAmount(updatedAmount);
+
+        // 4. Funding 및 Payment 상태 업데이트
+        fundingRepository.save(funding);
+        updatePaymentStatus(paymentId, PaymentStatus.refund.name()); // Payment 상태를 refund로 변경
+    }
+
     // 사용자별 거래 내역 조회
     @Transactional
     public List<PaymentDTO> getPaymentsByUserId(int userId) {
