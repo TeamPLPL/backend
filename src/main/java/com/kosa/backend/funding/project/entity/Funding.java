@@ -158,6 +158,10 @@ public class Funding extends Auditable {
 
     public void updateCurrentAmount(int currentAmount) {this.currentAmount = currentAmount;}
 
+    public void updateIsPublished(boolean isPublished) {this.isPublished = isPublished;}
+
+    public void updatePublishDate(LocalDateTime publishDate) {this.publishDate = publishDate;}
+
     // getter 명시적 생성
     public boolean getSaveStatus() {
         return saveStatus;

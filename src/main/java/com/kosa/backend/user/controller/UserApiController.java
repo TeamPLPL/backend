@@ -1,6 +1,7 @@
 package com.kosa.backend.user.controller;
 
 import com.kosa.backend.config.jwt.JWTUtil;
+import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.dto.UserDTO;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.service.UserService;
@@ -14,15 +15,15 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
-@Controller
+@RequestMapping("/api")
+@RestController
 public class UserApiController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
@@ -59,8 +60,13 @@ public class UserApiController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT token not found in cookies");
     }
 
+//    @GetMapping("/auth/user")
+//    public ResponseEntity<?> authUser(@AuthenticationPrincipal CustomUserDetails customUser) {
+//
+//    }
 
-    @GetMapping("/api/test")
+
+    @GetMapping("/test")
     public ResponseEntity test() {
         return ResponseEntity.ok().body("Hello World");
     }

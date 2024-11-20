@@ -3,12 +3,9 @@ package com.kosa.backend.funding.project.service;
 import com.kosa.backend.common.dto.FileDTO;
 import com.kosa.backend.common.service.S3CustomService;
 import com.kosa.backend.funding.project.dto.*;
-import com.kosa.backend.funding.project.dto.requestdto.RequestProjectDTO;
-import com.kosa.backend.funding.project.dto.requestdto.RequestProjectInfoDTO;
+import com.kosa.backend.funding.project.dto.requestdto.*;
 import com.kosa.backend.funding.project.dto.responsedto.ResponseProjectDTO;
 import com.kosa.backend.funding.project.dto.responsedto.ResponseProjectInfoDTO;
-import com.kosa.backend.funding.project.dto.requestdto.RequestProjectIntroDTO;
-import com.kosa.backend.funding.project.dto.requestdto.RequestProjectScheduleDTO;
 import com.kosa.backend.funding.project.entity.*;
 import com.kosa.backend.funding.project.entity.enums.MakerType;
 import com.kosa.backend.funding.project.repository.*;
@@ -18,6 +15,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -306,6 +304,19 @@ public class ProjectService {
 
         // 7. 저장
         return fundingRepository.save(funding).getId();
+    }
+
+    // 프로젝트 발행, 퍼블리싱
+    @Transactional
+    public int publish(RequestIsPublishedDTO isPublishedDTO,int projectId) {
+        // 1. 기존 Funding 객체 조회
+        Funding funding = fundingRepository.findById(projectId).orElseThrow(() ->
+                new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
+
+        funding.updateIsPublished(isPublishedDTO.isPublished());
+        funding.updatePublishDate(LocalDateTime.now());
+
+        return funding.getId();
     }
 
     // 프로젝트 삭제

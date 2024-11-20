@@ -8,12 +8,10 @@ import com.kosa.backend.funding.project.dto.MainCategoryDTO;
 import com.kosa.backend.funding.project.dto.RewardDTO;
 import com.kosa.backend.funding.project.dto.RewardInfoDTO;
 import com.kosa.backend.funding.project.dto.SubCategoryDTO;
+import com.kosa.backend.funding.project.dto.requestdto.RequestIsPublishedDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectInfoDTO;
 import com.kosa.backend.funding.project.dto.responsedto.ResponseProjectDTO;
-import com.kosa.backend.funding.project.service.CategoryService;
-import com.kosa.backend.funding.project.service.ProjectService;
-import com.kosa.backend.funding.project.service.RewardService;
-import com.kosa.backend.funding.project.service.RewardSubService;
+import com.kosa.backend.funding.project.service.*;
 import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.service.UserService;
@@ -60,6 +58,7 @@ public class SubApiController {
         return ResponseEntity.ok(subCategoryDTOList);
     }
 
+    // 썸네일 입력 컨트롤러
     @PostMapping("/{projectId}/thumbnail")
     public ResponseEntity<?> uploadThubnail(@AuthenticationPrincipal CustomUserDetails cud,
                                                   @PathVariable(name = "projectId") int projectId,
@@ -78,6 +77,7 @@ public class SubApiController {
         return ResponseEntity.ok(thumbnail);
     }
 
+    // 썸네일 가져오는 컨트롤러
     @GetMapping("/{projectId}/thumbnail")
     public ResponseEntity<?> getThubnail(@AuthenticationPrincipal CustomUserDetails cud,
                                          @PathVariable(name = "projectId") int projectId) throws IOException {
@@ -218,5 +218,25 @@ public class SubApiController {
                         && responseProjectDTO.isRewardInfoComplete()
         );
         return ResponseEntity.ok(completionStatus);
+    }
+
+    // 게시글 발행
+    @PostMapping("/{projectId}/ispublished")
+    public ResponseEntity<?> isPublish(@AuthenticationPrincipal CustomUserDetails customUser,
+                                       @RequestBody RequestIsPublishedDTO  isPublishedDTO,
+//                                       @RequestBody String rawRequestBody,
+                                       @PathVariable(name = "projectId") int projectId) {
+        ResponseProjectDTO responseProjectDTO = projectService.getProject(projectId);
+
+//        System.out.println("Raw Request Body: " + rawRequestBody); // 클라이언트 데이터 확인
+
+        System.out.println(isPublishedDTO.toString());
+
+        int updatedProjectId = projectService.publish(isPublishedDTO, projectId);
+
+        return ResponseEntity.ok().
+                body(updatedProjectId);
+
+//        return ResponseEntity.ok(rawRequestBody);
     }
 }
