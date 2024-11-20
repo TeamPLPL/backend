@@ -1,6 +1,6 @@
 package com.kosa.backend.common.controller;
 
-import com.kosa.backend.common.entity.Files;
+import com.kosa.backend.common.dto.FileDTO;
 import com.kosa.backend.common.entity.enums.ImgType;
 import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.user.dto.CustomUserDetails;
@@ -58,7 +58,6 @@ public class ImageController {
 //    }
 
 
-
     @DeleteMapping("/delete/{file-id}")
     public ResponseEntity<String> deleteFundingDetailImg(@AuthenticationPrincipal CustomUserDetails cud, @PathVariable("file-id") int fileId) {
         User user = CommonUtils.getCurrentUser(cud, userService);
@@ -90,17 +89,18 @@ public class ImageController {
 //        return ResponseEntity.ok().build();
 //    }
 
-    //    @PostMapping
-//    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
-//        try {
+        @PostMapping("/test")
+    public ResponseEntity<String> uploadImage(@AuthenticationPrincipal CustomUserDetails cud, @RequestParam("file") MultipartFile file) {
+        try {
 //            System.out.println(file.getOriginalFilename());
-//            String imageUrl = s3Service.uploadFile(file);
+            User user = CommonUtils.getCurrentUser(cud, userService);
+            return s3Service.uploadImgFile(user, file, ImgType.DETAIL_IMAGE, 1);
 //            System.out.println(imageUrl);
 //            return ResponseEntity.ok(imageUrl);
-//        } catch (IOException e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload image");
-//        }
-//    }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload image");
+        }
+    }
 //
 //    @GetMapping("/{imageName}")
 //    public ResponseEntity<InputStreamResource> getImage(@PathVariable("imageName") String imageName) {
@@ -113,4 +113,11 @@ public class ImageController {
 //            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 //        }
 //    }
+
+    @PostMapping("/detail/list/{id}")
+    public ResponseEntity<List<FileDTO>> getDetailImgList(@PathVariable("id") int fundingId) {
+        List<FileDTO> fileDTOList = s3Service.getDetailImgListByFundingId(fundingId);
+
+        return ResponseEntity.ok(fileDTOList);
+    }
 }

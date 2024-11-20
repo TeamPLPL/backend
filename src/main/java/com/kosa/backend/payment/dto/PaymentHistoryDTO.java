@@ -12,7 +12,7 @@ public class PaymentHistoryDTO {
     private int id;
     private String category;
     private String subcategory;
-//    private String status;
+    private String status;
     private String title;
     private String author;
     private String date;

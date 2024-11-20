@@ -18,14 +18,20 @@ public interface FundingRepository extends JpaRepository<Funding, Integer> {
 
     List<Funding> findAllByOrderByPublishDateDesc(Pageable pageable);
 
-    @Query("SELECT f, COUNT(fs.id) AS supportCount " +
-            "FROM Funding f LEFT JOIN f.fundingSupport fs " +
-            "WHERE f.fundingStartDate <= :currentDate AND f.fundingEndDate >= :currentDate " +
-            "GROUP BY f.id, f.fundingTitle, f.fundingStartDate, f.fundingEndDate " +
+//    @Query("SELECT f, COUNT(fs.id) AS supportCount " +
+//            "FROM Funding f LEFT JOIN f.fundingSupport fs " +
+//            "WHERE f.fundingStartDate <= :currentDate AND f.fundingEndDate >= :currentDate " +
+//            "GROUP BY f.id, f.fundingTitle, f.fundingStartDate, f.fundingEndDate " +
+//            "ORDER BY supportCount DESC")
+//    List<FundingWithSupporterCntDTO> findFundingWithSupportCountAndDateCondition(Pageable pageable, @Param("currentDate") LocalDateTime currentDate);
+
+    @Query("SELECT f, COUNT(DISTINCT fs.user.id) as supportCount " +
+            "FROM Funding f " +
+            "LEFT JOIN FundingSupport fs ON f.id = fs.funding.id " +
+            "WHERE f.fundingStartDate <= :currentDate AND f.fundingEndDate >= :currentDate AND f.isPublished = true " +
+            "GROUP BY f.id " +
             "ORDER BY supportCount DESC")
-    List<FundingWithSupporterCntDTO> findFundingWithSupportCountAndDateCondition(Pageable pageable, @Param("currentDate") LocalDateTime currentDate);
-
-
+    Page<Object[]> findAllPublishedWithSupporterCount(Pageable pageable, @Param("currentDate") LocalDateTime currentDate);
 
     @Query("SELECT f.id FROM Funding f WHERE f.fundingStartDate <= :currentDate AND f.fundingEndDate >= :currentDate")
     List<Integer> findAllCurrentFundingIds(@Param("currentDate") LocalDateTime currentDate);
@@ -37,4 +43,16 @@ public interface FundingRepository extends JpaRepository<Funding, Integer> {
     Page<Funding> findAllBySubCategory_IdIn(List<Integer> subCategoryIds, Pageable pageable);
     Page<Funding> findAllBySubCategory_Id(Integer subCategoryId, Pageable pageable);
 
+//    Page<Funding> findByFundingTitleContainingAndIsPublishedTrue(String title, Pageable pageable);
+
+    @Query("SELECT f, COUNT(DISTINCT fs.user.id) as supportCount " +
+            "FROM Funding f " +
+            "LEFT JOIN FundingSupport fs ON f.id = fs.funding.id " +
+            "WHERE f.fundingTitle LIKE %:title% AND f.isPublished = true " +
+            "GROUP BY f.id " +
+            "ORDER BY supportCount DESC")
+    Page<Object[]> findByFundingTitleContainingAndIsPublishedTrueOrderBySupportCount(
+            @Param("title") String title,
+            Pageable pageable
+    );
 }

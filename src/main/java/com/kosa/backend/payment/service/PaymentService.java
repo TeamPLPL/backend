@@ -3,7 +3,9 @@ package com.kosa.backend.payment.service;
 import com.kosa.backend.funding.project.dto.FundingDTO;
 import com.kosa.backend.funding.project.dto.RewardDTO;
 import com.kosa.backend.funding.project.entity.Funding;
+import com.kosa.backend.funding.project.entity.MainCategory;
 import com.kosa.backend.funding.project.entity.Reward;
+import com.kosa.backend.funding.project.entity.SubCategory;
 import com.kosa.backend.funding.project.repository.FundingRepository;
 import com.kosa.backend.funding.project.repository.RewardRepository;
 import com.kosa.backend.funding.support.entity.FundingSupport;
@@ -123,6 +125,43 @@ public class PaymentService {
         return mapToDTO(savedPayment, funding, paymentDTO.getRewards());
     }
 
+    // 구매를 결정하면 해당 펀딩의 모금액이 리워드 가격 + 추가 후원금만큼 쌓인다.
+    @Transactional
+    public void updateFundingCurrentAmount(int fundingId, int calculatedAmount) {
+        Funding funding = fundingRepository.findById(fundingId)
+                .orElseThrow(() -> new IllegalArgumentException("Funding not found"));
+
+        // 기존 모금액에 배송비 제외된 계산값만 추가
+        int newAmount = funding.getCurrentAmount() + calculatedAmount;
+        funding.setCurrentAmount(newAmount);
+
+        fundingRepository.save(funding);
+    }
+
+    // 환불을 결정하면 해당 펀딩의 모금액이 리워드 가격 + 추가 후원금만큼 빠져나간다.
+    @Transactional
+    public void cancelPaymentAndUpdateFunding(int paymentId, int calculatedAmount) {
+        // 1. 결제 정보 조회
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("결제 정보를 찾을 수 없습니다: " + paymentId));
+
+        // 2. Funding 정보 조회
+        PaymentHistory paymentHistory = paymentHistoryRepository.findByPayment(payment)
+                .orElseThrow(() -> new RuntimeException("결제 내역을 찾을 수 없습니다."));
+        Funding funding = paymentHistory.getFunding();
+
+        // 3. Funding의 currentAmount 감소
+        int updatedAmount = funding.getCurrentAmount() - calculatedAmount;
+        if (updatedAmount < 0) {
+            throw new RuntimeException("금액이 0보다 작아질 수 없습니다.");
+        }
+        funding.setCurrentAmount(updatedAmount);
+
+        // 4. Funding 및 Payment 상태 업데이트
+        fundingRepository.save(funding);
+        updatePaymentStatus(paymentId, PaymentStatus.refund.name()); // Payment 상태를 refund로 변경
+    }
+
     // 사용자별 거래 내역 조회
     @Transactional
     public List<PaymentDTO> getPaymentsByUserId(int userId) {
@@ -171,6 +210,9 @@ public class PaymentService {
         Hibernate.initialize(funding.getMaker()); // Lazy 로딩 방지
         Hibernate.initialize(funding.getSubCategory()); // Lazy 로딩 방지
 
+        SubCategory subCategory = funding.getSubCategory();
+        MainCategory mainCategory = subCategory.getMainCategory();
+
         // FundingDTO 생성
         FundingDTO fundingDTO = FundingDTO.builder()
                 .id(funding.getId())
@@ -182,6 +224,10 @@ public class PaymentService {
         List<FundingSupport> fundingSupports = fundingSupportRepository.findByFundingIdAndUserIdAndPaymentId(
                 funding.getId(), payment.getUser().getId(), payment.getId()
         );
+
+        // PaymentMethod 정보 추가
+        PaymentMethod paymentMethod = paymentMethodRepository.findByPayment(payment)
+                .orElseThrow(() -> new RuntimeException("결제 수단을 찾을 수 없습니다: " + payment.getId()));
 
         List<RewardDTO> rewardDTOs = fundingSupports.stream()
                 .map(fs -> RewardDTO.builder()
@@ -209,17 +255,33 @@ public class PaymentService {
         // PaymentDetailDTO 생성
         PaymentDetailDTO paymentDetailDTO = new PaymentDetailDTO();
         paymentDetailDTO.setPaymentId(payment.getId());
+        paymentDetailDTO.setAmount(payment.getAmount());
         paymentDetailDTO.setPaymentDate(payment.getPaymentDate());
         paymentDetailDTO.setPaymentStatus(payment.getStatus().name());
         paymentDetailDTO.setReceiverName(payment.getReceiverName());
         paymentDetailDTO.setPhoneNum(payment.getPhoneNum());
         paymentDetailDTO.setDeliveryRequest(payment.getDeliveryRequest());
+
+        // Coupon 정보 매핑
+        Coupon coupon = payment.getCoupon();
+        if (coupon != null) {
+            paymentDetailDTO.setCouponId(coupon.getId());
+            paymentDetailDTO.setDiscountRate(coupon.getDiscountRate());
+        }
+
+        paymentDetailDTO.setMethodType(paymentMethod.getMethodType());
+        paymentDetailDTO.setCardNumber(paymentMethod.getCardNumber());
+
         paymentDetailDTO.setFundingStartDate(funding.getFundingStartDate());
         paymentDetailDTO.setFundingEndDate(funding.getFundingEndDate());
 
         paymentDetailDTO.setAddress(addressDTO);
         paymentDetailDTO.setFunding(fundingDTO);
         paymentDetailDTO.setRewards(rewardDTOs);
+
+        // 카테고리 정보 설정
+        paymentDetailDTO.setMainCategory(mainCategory.getMainCategoryName());
+        paymentDetailDTO.setSubCategory(subCategory.getSubCategoryName());
 
         return paymentDetailDTO;
     }
