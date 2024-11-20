@@ -3,15 +3,16 @@ package com.kosa.backend.funding.support.entity;
 import com.kosa.backend.common.entity.Auditable;
 import com.kosa.backend.funding.project.entity.Funding;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Builder
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Table(name = "FUNDING_NOTICE")
 public class FundingNotice extends Auditable {
     @Id

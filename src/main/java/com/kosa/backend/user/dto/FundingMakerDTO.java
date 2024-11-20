@@ -14,6 +14,7 @@ public class FundingMakerDTO {
     private String userContent;
     private String userNick;
     private String profileImgUrl;
+    private String makerEmail;
 
     private boolean isFollowing;
 }
