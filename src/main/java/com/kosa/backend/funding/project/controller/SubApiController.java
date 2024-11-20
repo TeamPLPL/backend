@@ -8,6 +8,7 @@ import com.kosa.backend.funding.project.dto.MainCategoryDTO;
 import com.kosa.backend.funding.project.dto.RewardDTO;
 import com.kosa.backend.funding.project.dto.RewardInfoDTO;
 import com.kosa.backend.funding.project.dto.SubCategoryDTO;
+import com.kosa.backend.funding.project.dto.requestdto.RequestIsPublishedDTO;
 import com.kosa.backend.funding.project.dto.requestdto.RequestProjectInfoDTO;
 import com.kosa.backend.funding.project.dto.responsedto.ResponseProjectDTO;
 import com.kosa.backend.funding.project.service.CategoryService;
@@ -218,5 +219,14 @@ public class SubApiController {
                         && responseProjectDTO.isRewardInfoComplete()
         );
         return ResponseEntity.ok(completionStatus);
+    }
+
+    @PostMapping("/{projectId}/ispublished")
+    public ResponseEntity<?> isPublish(@AuthenticationPrincipal CustomUserDetails customUser,
+                                       @RequestBody RequestIsPublishedDTO  isPublishedDTO,
+                                       @PathVariable(name = "projectId") int projectId) {
+        ResponseProjectDTO responseProjectDTO = projectService.getProject(projectId);
+
+
     }
 }

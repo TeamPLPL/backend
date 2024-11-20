@@ -308,6 +308,17 @@ public class ProjectService {
         return fundingRepository.save(funding).getId();
     }
 
+    // 프로젝트 발행, 퍼블리싱
+    @Transactional
+    public void publish(int projectId) {
+        // 1. 기존 Funding 객체 조회
+        Funding funding = fundingRepository.findById(projectId).orElseThrow(() ->
+                new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
+
+        funding.updatei
+
+    }
+
     // 프로젝트 삭제
     public void delete(int projectId) {
         // 1. 기존 Funding 객체 조회

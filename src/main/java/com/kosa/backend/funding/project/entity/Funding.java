@@ -157,7 +157,7 @@ public class Funding extends Auditable {
     }
 
     public void updateCurrentAmount(int currentAmount) {this.currentAmount = currentAmount;}
-
+    
     // getter 명시적 생성
     public boolean getSaveStatus() {
         return saveStatus;
