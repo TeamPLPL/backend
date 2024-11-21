@@ -26,7 +26,7 @@ public class User extends Auditable implements UserDetails { // UserDetailsë¥¼ ì
     @Column(name="email", nullable=false, unique=true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String userName;
 
     @Column(nullable = true)
