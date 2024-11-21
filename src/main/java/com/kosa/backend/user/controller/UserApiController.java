@@ -3,6 +3,7 @@ package com.kosa.backend.user.controller;
 import com.kosa.backend.config.jwt.JWTUtil;
 import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.dto.UserDTO;
+import com.kosa.backend.user.dto.responsedto.ResponseUserDTO;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.service.UserService;
 import jakarta.servlet.http.Cookie;
@@ -26,8 +27,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class UserApiController {
     private final UserService userService;
-    private final AuthenticationManager authenticationManager;
-    private final JWTUtil jwtUtil;
 
     // 회원가입
     @PostMapping("/signup")
@@ -60,11 +59,12 @@ public class UserApiController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT token not found in cookies");
     }
 
-//    @GetMapping("/auth/user")
-//    public ResponseEntity<?> authUser(@AuthenticationPrincipal CustomUserDetails customUser) {
-//
-//    }
-
+    @GetMapping("/get/user")
+    public ResponseEntity<?> authUser(@AuthenticationPrincipal CustomUserDetails customUser) {
+        String userEmail = customUser.getUsername();
+        ResponseUserDTO user = userService.getUserInfo(userEmail);
+        return ResponseEntity.ok().body(user);
+    }
 
     @GetMapping("/test")
     public ResponseEntity test() {

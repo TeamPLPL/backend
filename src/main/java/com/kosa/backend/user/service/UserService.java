@@ -3,6 +3,7 @@ package com.kosa.backend.user.service;
 import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.user.dto.UserDTO;
 import com.kosa.backend.user.dto.UserInfoDTO;
+import com.kosa.backend.user.dto.responsedto.ResponseUserDTO;
 import com.kosa.backend.user.entity.Maker;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.entity.enums.Authority;
@@ -71,10 +72,19 @@ public class UserService {
         return userRepository.findByEmail(email).get();
     }
 
+    // 작성자 : 신은호, 작성 내용 : 사용자 구분 로직
     public User authenticate(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isPresent()) {
             return user.get();
+        }
+        return null;
+    }
+
+    public ResponseUserDTO getUserInfo(String userEmail) {
+        Optional<User> optionalUser = userRepository.findByEmail(userEmail);
+        if (optionalUser.isPresent()) {
+            return ResponseUserDTO.toEntity(optionalUser.get());
         }
         return null;
     }

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,6 +44,7 @@ public class UserSubController {
     // 프로필 이미지가져오는 컨트롤러
     @GetMapping("/get/profileimage")
     public ResponseEntity<?> getThubnail(@AuthenticationPrincipal CustomUserDetails cud) throws IOException {
+
         // 인증된 User 체크 메소드 따로 빼기
         String userEmail = cud.getUsername();
         User user = userService.getUser(userEmail);
@@ -51,8 +53,13 @@ public class UserSubController {
         }
 
         FileDTO profileImage =  s3CustomService.getprofile(user.getId());
-        System.out.println(profileImage.toString());
 
+        if (profileImage == null) {
+            // 프로필 이미지가 없는 경우
+            System.out.println("프로필 이미지가 없습니다.");
+            return ResponseEntity.noContent().build(); // HTTP 204 응답
+        }
+        System.out.println(profileImage);
         return ResponseEntity.ok(profileImage);
     }
 
