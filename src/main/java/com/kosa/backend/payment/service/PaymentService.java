@@ -138,6 +138,32 @@ public class PaymentService {
         fundingRepository.save(funding);
     }
 
+    // 남은 리워드 수량 계산
+    @Transactional(readOnly = true)
+    public int getRemainingQuantity(int rewardId, int fundingId) {
+        // Reward의 최대 수량 조회
+        int quantityLimit = rewardRepository.findById(rewardId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Reward ID"))
+                .getQuantityLimit();
+
+        // FundingSupport에서 rewardCount 합계 조회 (payment status가 'complete'인 경우)
+        int usedQuantity = fundingSupportRepository.getUsedQuantity(rewardId, fundingId);
+
+        return quantityLimit - usedQuantity;
+    }
+
+    // 구매 검증
+    @Transactional(readOnly = true)
+    public boolean validatePurchase(int rewardId, int fundingId, int purchaseQuantity) {
+        int remainingQuantity = getRemainingQuantity(rewardId, fundingId);
+
+        if (remainingQuantity - purchaseQuantity < 0) {
+            throw new IllegalStateException("남은 리워드 수량이 부족합니다.");
+        }
+
+        return true;
+    }
+
     // 환불을 결정하면 해당 펀딩의 모금액이 리워드 가격 + 추가 후원금만큼 빠져나간다.
     @Transactional
     public void cancelPaymentAndUpdateFunding(int paymentId, int calculatedAmount) {

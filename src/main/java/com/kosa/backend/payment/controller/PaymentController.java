@@ -16,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,45 @@ public class PaymentController {
         paymentService.updateFundingCurrentAmount(fundingId, calculatedAmount);
 
         return ResponseEntity.ok("Funding current amount updated successfully.");
+    }
+
+    // 남은 리워드 수량 조회
+    @GetMapping("/{rewardId}/remaining")
+    public ResponseEntity<Map<String, Object>> getRemainingQuantity(
+            @PathVariable int rewardId,
+            @RequestParam int fundingId) {
+        int remainingQuantity = paymentService.getRemainingQuantity(rewardId, fundingId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("rewardId", rewardId);
+        response.put("fundingId", fundingId);
+        response.put("remainingQuantity", remainingQuantity);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // 구매 검증
+    @PostMapping("/validate-purchase")
+    public ResponseEntity<Map<String, Object>> validatePurchase(@RequestBody Map<String, Object> purchaseRequest) {
+        int rewardId = (int) purchaseRequest.get("rewardId");
+        int fundingId = (int) purchaseRequest.get("fundingId");
+        int purchaseQuantity = (int) purchaseRequest.get("purchaseQuantity");
+
+        try {
+            paymentService.validatePurchase(rewardId, fundingId, purchaseQuantity);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("valid", true);
+            response.put("remainingQuantity", paymentService.getRemainingQuantity(rewardId, fundingId));
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalStateException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("valid", false);
+            response.put("message", e.getMessage());
+            response.put("remainingQuantity", paymentService.getRemainingQuantity(rewardId, fundingId));
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     @PostMapping("/{paymentId}/cancel")
