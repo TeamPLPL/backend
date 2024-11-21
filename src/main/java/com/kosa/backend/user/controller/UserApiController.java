@@ -30,7 +30,7 @@ public class UserApiController {
     private final JWTUtil jwtUtil;
 
     // 회원가입
-    @PostMapping("/api/signup")
+    @PostMapping("/signup")
     public ResponseEntity signup(@RequestBody UserDTO userDTO) {
         int num = userService.save(userDTO);
         return ResponseEntity.ok()
@@ -38,7 +38,7 @@ public class UserApiController {
     }
 
     // 소셜 로그인 시 쿠키에 있는 토큰 헤더로 리디렉트 컨트롤러
-    @GetMapping("/api/cookie-to-header")
+    @GetMapping("/cookie-to-header")
     public ResponseEntity<String> getJwtFromCookie(HttpServletRequest request) {
         // 쿠키에서 JWT 추출
         Cookie[] cookies = request.getCookies();
