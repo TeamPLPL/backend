@@ -25,4 +25,13 @@ public interface FundingSupportRepository extends JpaRepository<FundingSupport, 
     @Query("SELECT COUNT(DISTINCT fs.user.id) FROM FundingSupport fs WHERE fs.funding.id = :fundingId")
     int countDistinctUsersByFundingId(@Param("fundingId") int fundingId);
 
+    // 사간 수량 확인
+    @Query("SELECT COALESCE(SUM(fs.rewardCount), 0) " +
+            "FROM FundingSupport fs " +
+            "JOIN Payment p ON fs.payment.id = p.id " +
+            "WHERE fs.reward.id = :rewardId " +
+            "AND fs.funding.id = :fundingId " +
+            "AND p.status = 'complete'")
+    int getUsedQuantity(@Param("rewardId") int rewardId, @Param("fundingId") int fundingId);
+
 }
