@@ -46,8 +46,6 @@ public class UserService {
         return id;
     }
     
-    //
-    
     public ResponseEntity<UserInfoDTO> getUserInfo(int userId) {
 
         Optional<User> currentUser = userRepository.findById(userId);
@@ -71,5 +69,13 @@ public class UserService {
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email).get();
+    }
+
+    public User authenticate(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isPresent()) {
+            return user.get();
+        }
+        return null;
     }
 }
