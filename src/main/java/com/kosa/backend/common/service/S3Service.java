@@ -39,7 +39,7 @@ public class S3Service {
     private final FilesRepository filesRepository;
     private final FilesSequenceRepository filesSequenceRepository;
 
-    @Value("${aws.s3.bucket}")
+    @Value("${AWS_S3_BUCKET}")
     private String bucketName;
 
 

@@ -8,6 +8,7 @@ import com.kosa.backend.funding.project.service.RewardSubService;
 import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.service.UserService;
+import com.kosa.backend.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,9 +31,8 @@ public class UserSubController {
     @PostMapping("/upload/profileimage")
     public ResponseEntity<?> uploadProfileImage(@AuthenticationPrincipal CustomUserDetails cud,
                                             @RequestParam("file") MultipartFile file) throws IOException {
-        // 인증된 User 체크 메소드 따로 빼기
-        String userEmail = cud.getUsername();
-        User user = userService.getUser(userEmail);
+
+        User user = CommonUtils.getCurrentUser(cud, userService);
         if(user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -43,9 +43,8 @@ public class UserSubController {
     // 프로필 이미지가져오는 컨트롤러
     @GetMapping("/get/profileimage")
     public ResponseEntity<?> getThubnail(@AuthenticationPrincipal CustomUserDetails cud) throws IOException {
-        // 인증된 User 체크 메소드 따로 빼기
-        String userEmail = cud.getUsername();
-        User user = userService.getUser(userEmail);
+
+        User user = CommonUtils.getCurrentUser(cud, userService);
         if(user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -60,9 +59,8 @@ public class UserSubController {
     @GetMapping("{fileId}/delete/profileimage")
     public ResponseEntity<?> deleteImage(@AuthenticationPrincipal CustomUserDetails cud,
                                          @PathVariable(name = "fileId") int fileId) {
-        // 인증된 User 체크 메소드 따로 빼기
-        String userEmail = cud.getUsername();
-        User user = userService.getUser(userEmail);
+
+        User user = CommonUtils.getCurrentUser(cud, userService);
         if(user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

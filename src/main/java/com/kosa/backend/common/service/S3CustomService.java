@@ -24,7 +24,7 @@ public class S3CustomService {
     private final FilesRepository filesRepository;
 
 
-    @Value("${aws.s3.bucket}")
+    @Value("${AWS_S3_BUCKET}")
     private String bucketName;
 
     // 서명된 URL 생성 메소드
