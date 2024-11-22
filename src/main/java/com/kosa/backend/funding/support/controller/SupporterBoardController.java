@@ -62,7 +62,23 @@ public class SupporterBoardController {
 
     // Delete
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSupporterBoardById(@PathVariable("id") int id) {
+    public ResponseEntity<Void> deleteSupporterBoardById(
+            @PathVariable("id") int id,
+            @AuthenticationPrincipal CustomUserDetails cud
+    ) {
+        // 인증된 사용자의 이메일
+        String userEmail = cud.getUsername();
+
+        // 게시글 조회
+        SupporterBoard board = supporterBoardService.getSupporterBoardById(id)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+
+        // 게시글 작성자와 요청 사용자가 일치하는지 확인
+        if (!board.getUser().getEmail().equals(userEmail)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 작성자가 아니면 삭제 금지
+        }
+
+        // 삭제 수행
         supporterBoardService.deleteSupporterBoardById(id);
         return ResponseEntity.noContent().build();
     }
