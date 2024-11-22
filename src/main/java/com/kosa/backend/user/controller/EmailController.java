@@ -1,28 +1,20 @@
 package com.kosa.backend.user.controller;
 
+import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.dto.UserDTO;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.service.EmailService;
 import com.kosa.backend.user.service.UserService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailSender;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
 
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -31,6 +23,7 @@ public class EmailController {
     private final UserService userService;
     private final EmailService emailService;
 
+    // 이메일 입력해서 인증
     @PostMapping("/auth/email")
     public ResponseEntity<?> email(@RequestBody UserDTO userDTO) throws MessagingException, UnsupportedEncodingException {
         Map<String, String> response = new HashMap<>();
@@ -44,5 +37,15 @@ public class EmailController {
             response.put("key", key);
             return ResponseEntity.ok(response); // 200 OK 상태 반환
         }
+    }
+
+    // 등록된 이메일로 인증
+    @GetMapping("/auth/useremail")
+    public ResponseEntity<?> verifByuserEmail(@AuthenticationPrincipal CustomUserDetails customUserDetails) throws MessagingException, UnsupportedEncodingException {
+        Map<String, String> response = new HashMap<>();
+        User user = userService.findByEmail(customUserDetails.getUsername());
+        String key = emailService.sendHtmlEmail(user.getEmail());
+        response.put("key", key);
+        return ResponseEntity.ok(response); // 200 OK 상태 반환
     }
 }

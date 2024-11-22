@@ -20,6 +20,7 @@ public class ResponseUserDTO {
     public static ResponseUserDTO toEntity(User user) {
         return ResponseUserDTO.builder()
                 .email(user.getEmail())
+                .userName(user.getUserName())
                 .userNick(user.getUserNick())
                 .provider(user.getProvider())
                 .build();

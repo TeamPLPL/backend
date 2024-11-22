@@ -93,6 +93,18 @@ public class UserService {
         return null;
     }
 
+    // 사용자 이름 입력 로직
+    public String inputUserNick(String userEmail, String userNick) {
+        Optional<User> optionalUser = userRepository.findByEmail(userEmail);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.updateUserNick(userNick);
+            userRepository.save(user);
+            return user.getEmail();
+        }
+        return null;
+    }
+
     // 비밀 번호 검증 로직
     public boolean authPassword(String email, String inputPassword) {
         Optional<User> optionalUser = userRepository.findByEmail(email);

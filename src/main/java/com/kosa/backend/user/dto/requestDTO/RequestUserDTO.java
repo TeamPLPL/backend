@@ -13,13 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RequestUserDTO {
     private String userName;
+    private String userNick;
     private String password;
     private String userContent;
-
-    public static RequestUserDTO toEntity(User user, Maker maker) {
-        return RequestUserDTO.builder()
-                .userName(user.getUsername())
-                .userContent(maker.getUserContent())
-                .build();
-    }
 }

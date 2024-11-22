@@ -42,6 +42,7 @@ public class UserApiController {
     // 소셜 로그인 시 쿠키에 있는 토큰 헤더로 리디렉트 컨트롤러
     @GetMapping("/cookie-to-header")
     public ResponseEntity<String> getJwtFromCookie(HttpServletRequest request) {
+        System.out.println("쿠키 호출");
         // 쿠키에서 JWT 추출
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
@@ -62,7 +63,7 @@ public class UserApiController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT token not found in cookies");
     }
 
-    // 유저 정보 업데이트(이름, 메이커 소개)
+    // 유저 정보 업데이트(이름, 닉네임, 메이커 소개)
     @PostMapping("/input/userinfo")
     public ResponseEntity<?> inputUserName(@AuthenticationPrincipal CustomUserDetails customUser,
                                         @RequestBody RequestUserDTO requestUserDTO){
@@ -79,6 +80,10 @@ public class UserApiController {
 
         if(requestUserDTO.getUserContent() != null) {
             makerService.updateMaker(user, requestUserDTO.getUserContent());
+        }
+
+        if(requestUserDTO.getUserNick() != null) {
+            userService.inputUserNick(userEmail, requestUserDTO.getUserNick());
         }
 
         return ResponseEntity.ok().build();
