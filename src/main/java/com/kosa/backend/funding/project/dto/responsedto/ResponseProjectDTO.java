@@ -71,15 +71,22 @@ public class ResponseProjectDTO {
             return repName != null && !repName.equals("")
                     && repEmail != null && !repEmail.equals("")
                     && personalMaker != null
-                    && personalMaker.getIdentityCard() != null && !personalMaker.getIdentityCard().equals("");
+                    && personalMaker.getIdentityCard() != null && !personalMaker.getIdentityCard().equals("")
+                    && thumbnail != null
+                    && detailImage != null
+                    && fundingExplanation != null && !fundingExplanation.equals("");
         } else {
             return repName != null && !repName.equals("")
                     && repEmail != null && !repEmail.equals("")
                     && businessMaker != null
                     && businessMaker.getBusinessRegistNum() != null && !businessMaker.getBusinessRegistNum().equals("")
-                    && businessMaker.getCompanyName() != null && !businessMaker.getCompanyName().equals("");
+                    && businessMaker.getCompanyName() != null && !businessMaker.getCompanyName().equals("")
+                    && thumbnail != null
+                    && detailImage != null
+                    && fundingExplanation != null && !fundingExplanation.equals("");
         }
     }
+
 
     public boolean isRewardComplete() {
         return rewards != null && rewards.size() > 0;

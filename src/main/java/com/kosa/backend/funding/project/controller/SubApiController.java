@@ -107,9 +107,9 @@ public class SubApiController {
 
         s3Service.uploadImgFile(user, file, ImgType.DETAIL_IMAGE, projectId);
 
-        FileDTO detailiamge =  s3CustomService.getDetailByFundingId(projectId);
+        FileDTO detailImage =  s3CustomService.getDetailByFundingId(projectId);
 
-        return ResponseEntity.ok(detailiamge);
+        return ResponseEntity.ok(detailImage);
     }
 
     // 상세 이미지 출력 컨트롤러
@@ -123,9 +123,9 @@ public class SubApiController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        FileDTO detailiamge =  s3CustomService.getDetailByFundingId(projectId);
+        FileDTO detailImage =  s3CustomService.getDetailByFundingId(projectId);
 
-        return ResponseEntity.ok(detailiamge);
+        return ResponseEntity.ok(detailImage);
     }
 
     // 이미지 삭제 컨트롤러

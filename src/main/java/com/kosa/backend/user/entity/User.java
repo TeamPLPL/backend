@@ -100,4 +100,17 @@ public class User extends Auditable implements UserDetails { // UserDetails를 �
     public boolean isEnabled() {
         return true; // true -> 사용 가능
     }
+
+    // update 로직
+    public void updateUserName(String newUserName) { this.userName = newUserName; }
+
+    public void updateUserNick(String newUserNick) { this.userNick = newUserNick; }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
 }
