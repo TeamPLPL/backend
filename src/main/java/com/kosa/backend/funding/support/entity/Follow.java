@@ -4,13 +4,13 @@ import com.kosa.backend.common.entity.Auditable;
 import com.kosa.backend.user.entity.Maker;
 import com.kosa.backend.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE) // Builder 전용 생성자
+@Builder
 @Table(name = "FOLLOW")
 public class Follow extends Auditable {
     @Id
