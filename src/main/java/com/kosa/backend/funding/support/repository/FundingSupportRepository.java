@@ -34,4 +34,6 @@ public interface FundingSupportRepository extends JpaRepository<FundingSupport, 
             "AND p.status = 'complete'")
     int getUsedQuantity(@Param("rewardId") int rewardId, @Param("fundingId") int fundingId);
 
+    @Query("SELECT COUNT(fs) > 0 FROM FundingSupport fs WHERE fs.funding.id = :fundingId AND fs.user.id = :userId")
+    boolean existsByFundingIdAndUserId(@Param("fundingId") int fundingId, @Param("userId") int userId);
 }
