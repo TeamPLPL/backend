@@ -19,17 +19,26 @@ public class SupporterBoardService {
 
     private final SupporterBoardRepository supporterBoardRepository;
     private final FundingRepository fundingRepository; // Funding 엔티티 접근
+    private final FundingSupportRepository fundingSupportRepository;
 
     public SupporterBoardService(
             SupporterBoardRepository supporterBoardRepository,
-            FundingRepository fundingRepository
+            FundingRepository fundingRepository,
+            FundingSupportRepository fundingSupportRepository
     ) {
         this.supporterBoardRepository = supporterBoardRepository;
         this.fundingRepository = fundingRepository;
+        this.fundingSupportRepository = fundingSupportRepository;
     }
 
     // Create
     public SupporterBoard addSupporterBoard(int fundingId, SupporterBoardDTO dto, User user) {
+        // 게시글 작성 권한 확인
+        boolean isParticipated = fundingSupportRepository.existsByFundingIdAndUserId(fundingId, user.getId());
+        if (!isParticipated) {
+            throw new RuntimeException("펀딩에 참여하지 않은 사용자는 게시글을 작성할 수 없습니다.");
+        }
+
         SupporterBoard board = new SupporterBoard();
 
         board.setBoardCategory(dto.getBoardCategory());

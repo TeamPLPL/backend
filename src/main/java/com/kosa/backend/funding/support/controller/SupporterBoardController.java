@@ -38,11 +38,14 @@ public class SupporterBoardController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        SupporterBoard savedBoard = supporterBoardService.addSupporterBoard(fundingId, supporterBoardDTO, user);
-
-        supporterBoardDTO.setId(savedBoard.getId());
-        supporterBoardDTO.setBoardDate(savedBoard.getBoardDate());
-        return ResponseEntity.ok(supporterBoardDTO);
+        try {
+            SupporterBoard savedBoard = supporterBoardService.addSupporterBoard(fundingId, supporterBoardDTO, user);
+            supporterBoardDTO.setId(savedBoard.getId());
+            supporterBoardDTO.setBoardDate(savedBoard.getBoardDate());
+            return ResponseEntity.ok(supporterBoardDTO);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null); // 참여하지 않은 사용자
+        }
     }
 
     // Read (by ID)
