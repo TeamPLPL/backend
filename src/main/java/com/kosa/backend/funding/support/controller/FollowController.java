@@ -1,5 +1,6 @@
 package com.kosa.backend.funding.support.controller;
 
+import com.kosa.backend.funding.support.dto.FollowDTO;
 import com.kosa.backend.funding.support.entity.Follow;
 import com.kosa.backend.funding.support.service.FollowService;
 import com.kosa.backend.user.dto.CustomUserDetails;
@@ -26,12 +27,12 @@ public class FollowController {
 
     // 유저별 팔로우 전체 조회
     @GetMapping("/list")
-    public ResponseEntity<List<Follow>> getFollows(@AuthenticationPrincipal CustomUserDetails cud) {
+    public ResponseEntity<List<FollowDTO>> getFollows(@AuthenticationPrincipal CustomUserDetails cud) {
         User user = CommonUtils.getCurrentUser(cud, userService);
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        List<Follow> follows = followService.getFollowsByUser(user);
+        List<FollowDTO> follows = followService.getFollowsByUser(user);
         return ResponseEntity.ok(follows);
     }
 
@@ -68,12 +69,12 @@ public class FollowController {
     }
 
     @GetMapping("/latest/{count}")
-    public ResponseEntity<List<Follow>> getLatestFollows(@AuthenticationPrincipal CustomUserDetails cud, @PathVariable int count) {
+    public ResponseEntity<List<FollowDTO>> getLatestFollows(@AuthenticationPrincipal CustomUserDetails cud, @PathVariable int count) {
         User user = CommonUtils.getCurrentUser(cud, userService);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        List<Follow> follows = followService.getLatestFollowsByUser(user, count);
+        List<FollowDTO> follows = followService.getLatestFollowsByUser(user, count);
         return ResponseEntity.ok(follows);
     }
 }
