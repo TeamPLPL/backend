@@ -3,6 +3,7 @@ package com.kosa.backend.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -10,15 +11,16 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 @Configuration
+@PropertySource("classpath:aws-credentials.properties")
 public class S3Config {
 
-    @Value("${AWS_ACCESS_KEY}")
+    @Value("${aws.accessKey}")
     private String accessKey;
 
-    @Value("${AWS_SECRET_KEY}")
+    @Value("${aws.secretKey}")
     private String secretKey;
 
-    @Value("${AWS_REGION}")
+    @Value("${aws.region}")
     private String region;
 
 
