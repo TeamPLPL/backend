@@ -26,18 +26,21 @@ public class RewardSubService {
     private final RewardRepository rewardRepository;
     private final RewardInfoRepository rewardInfoRepository;
 
-    // 리워드 생성
+    @Transactional
     public int save(List<RequestRewardDTO> rewardDTOList, int projectId) {
         // 1. 기존 Funding 객체 조회
         Funding funding = fundingRepository.findById(projectId).orElseThrow(() ->
                 new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
 
-        // 2. Reward Lists 저장
+        // 2. 기존 Reward 데이터 삭제
+        rewardRepository.deleteByFundingId(projectId);
+
+        // 3. 새 Reward 데이터 저장
         for (RequestRewardDTO rewardDTO : rewardDTOList) {
             rewardRepository.save(Reward.toSaveEntity(rewardDTO, funding));
         }
 
-        // 3. 저장
+        // 4. 저장
         return fundingRepository.save(funding).getId();
     }
 
@@ -46,6 +49,8 @@ public class RewardSubService {
         // 1. 기존 Funding 객체 조회
         Funding funding = fundingRepository.findById(projectId).orElseThrow(() ->
                 new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
+
+        rewardRepository.deleteByFundingId(projectId);
 
         // 2. Reward Lists 업데이트
         for (RequestRewardDTO rewardDTO : rewardDTOList) {
