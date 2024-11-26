@@ -29,7 +29,7 @@ public class RewardService {
     private final RewardInfoRepository rewardInfoRepository;
     private final FundingSupportRepository fundingSupportRepository;
 
-    // 구매할 reward들에 대한 정보 담은 rewardDTOList와 가방 비싼 배송비 하나를 반환하는 메소드
+    // 구매할 reward들에 대한 정보 담은 rewardDTOList와 가장 비싼 배송비 하나를 반환하는 메소드
     public ResponseEntity<RewardResponseDTO> getRewardDTOList(List<RewardDTO> rewardDTOList) {
         int deliveryFee = 0;
 
