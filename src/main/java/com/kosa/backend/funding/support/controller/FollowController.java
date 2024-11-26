@@ -38,7 +38,7 @@ public class FollowController {
 
     // 팔로우 추가
     @PostMapping("/add/{makerId}")
-    public ResponseEntity<Void> addFollow(@AuthenticationPrincipal CustomUserDetails cud, @PathVariable("makerId") int makerId) {
+    public ResponseEntity<?> addFollow(@AuthenticationPrincipal CustomUserDetails cud, @PathVariable("makerId") int makerId) {
         var user = CommonUtils.getCurrentUser(cud, userService);
         if (user == null) {
             return ResponseEntity.status(401).build();
@@ -48,8 +48,16 @@ public class FollowController {
         Maker maker = makerRepository.findById(makerId)
                 .orElseThrow(() -> new IllegalArgumentException("Maker not found with ID: " + makerId));
 
-        followService.addFollow(user, maker);
-        return ResponseEntity.ok().build();
+        try {
+            followService.addFollow(user, maker);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            // 자신을 팔로우하려는 경우
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (IllegalStateException e) {
+            // 이미 팔로우 중인 경우
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     // 팔로우 삭제
