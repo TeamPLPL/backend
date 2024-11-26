@@ -10,7 +10,6 @@ import com.kosa.backend.funding.project.entity.RewardInfo;
 import com.kosa.backend.funding.project.repository.FundingRepository;
 import com.kosa.backend.funding.project.repository.RewardInfoRepository;
 import com.kosa.backend.funding.project.repository.RewardRepository;
-import com.kosa.backend.funding.support.repository.FundingSupportRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -57,40 +56,37 @@ public class RewardSubService {
         return fundingRepository.save(funding).getId();
     }
 
-    // 리워드 정책 생성 (및 업데이트 왜 안될까,,,?)
     @Transactional
     public int savePolicy(RequestRewardInfoDTO rewardInfoDTO, int projectId) {
         // 1. 기존 Funding 객체 조회
-        Funding funding = fundingRepository.findById(projectId).orElseThrow(() ->
-                new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
+        Funding funding = fundingRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
 
-        // 2. 리워드 정책 객체 생성
-        RewardInfo rewardInfo = rewardInfoRepository.findByFundingId(funding.getId());
+        RewardInfo rewardInfo = Optional.ofNullable(rewardInfoRepository.findByFundingId(funding.getId()))
+                .orElseGet(() -> RewardInfo.builder()
+                        .funding(funding)
+                        .build());
 
-        if(rewardInfo == null) {
-            RewardInfo.builder()
-                    .modelName(rewardInfoDTO.getModelName())
-                    .productMaterial(rewardInfoDTO.getProductMaterial())
-                    .color(rewardInfoDTO.getColor())
-                    .field(rewardInfoDTO.getField())
-                    .manufacturer(rewardInfoDTO.getManufacturer())
-                    .manufacturingCountry(rewardInfoDTO.getManufacturingCountry())
-                    .manufactureDate(rewardInfoDTO.getManufactureDate())
-                    .funding(funding)
-                    .build();
-        } else {
-            rewardInfo.updateModelName(rewardInfoDTO.getModelName());
-            rewardInfo.updateProductMaterial(rewardInfoDTO.getProductMaterial());
-            rewardInfo.updateColor(rewardInfoDTO.getColor());
-            rewardInfo.updateField(rewardInfoDTO.getField());
-            rewardInfo.updateManufacturer(rewardInfoDTO.getManufacturer());
-            rewardInfo.updateManufacturingCountry(rewardInfoDTO.getManufacturingCountry());
-            rewardInfo.updateManufactureDate(rewardInfoDTO.getManufactureDate());
-        }
+        // 3. 리워드 정책 업데이트
+        updateRewardInfo(rewardInfo, rewardInfoDTO);
 
-        // 3. 저장
+        // 4. 저장
+        rewardInfoRepository.save(rewardInfo);
+
         return funding.getId();
     }
+
+    // 리워드 정책 업데이트 메서드
+    private void updateRewardInfo(RewardInfo rewardInfo, RequestRewardInfoDTO rewardInfoDTO) {
+        rewardInfo.updateModelName(rewardInfoDTO.getModelName());
+        rewardInfo.updateProductMaterial(rewardInfoDTO.getProductMaterial());
+        rewardInfo.updateColor(rewardInfoDTO.getColor());
+        rewardInfo.updateField(rewardInfoDTO.getField());
+        rewardInfo.updateManufacturer(rewardInfoDTO.getManufacturer());
+        rewardInfo.updateManufacturingCountry(rewardInfoDTO.getManufacturingCountry());
+        rewardInfo.updateManufactureDate(rewardInfoDTO.getManufactureDate());
+    }
+
 
     // 리워드 리스트 가져오는 서비스 로직
     public List<RewardDTO> findAll(int projectId) {
