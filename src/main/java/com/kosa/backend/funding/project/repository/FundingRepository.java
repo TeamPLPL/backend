@@ -40,19 +40,29 @@ public interface FundingRepository extends JpaRepository<Funding, Integer> {
     // 작성자 : 신은호, 작성 내용 : maker에 의한 프로젝트 조회
     List<Funding> findAllByMaker(Maker maker);
 
-    Page<Funding> findAllBySubCategory_IdIn(List<Integer> subCategoryIds, Pageable pageable);
-    Page<Funding> findAllBySubCategory_Id(Integer subCategoryId, Pageable pageable);
+    List<Funding> findAllBySubCategory_IdIn(List<Integer> subCategoryIds);
+    List<Funding> findAllBySubCategory_Id(Integer subCategoryId);
 
 //    Page<Funding> findByFundingTitleContainingAndIsPublishedTrue(String title, Pageable pageable);
 
-    @Query("SELECT f, COUNT(DISTINCT fs.user.id) as supportCount " +
+//    @Query("SELECT f, COUNT(DISTINCT fs.user.id) as supportCount " +
+//            "FROM Funding f " +
+//            "LEFT JOIN FundingSupport fs ON f.id = fs.funding.id " +
+//            "WHERE f.fundingTitle LIKE %:title% AND f.isPublished = true " +
+//            "GROUP BY f.id " +
+//            "ORDER BY supportCount DESC")
+//    Page<Object[]> findByFundingTitleContainingAndIsPublishedTrueOrderBySupportCount(
+//            @Param("title") String title,
+//            Pageable pageable
+//    );
+
+        @Query("SELECT f, COUNT(DISTINCT fs.user.id) as supportCount " +
             "FROM Funding f " +
             "LEFT JOIN FundingSupport fs ON f.id = fs.funding.id " +
             "WHERE f.fundingTitle LIKE %:title% AND f.isPublished = true " +
             "GROUP BY f.id " +
             "ORDER BY supportCount DESC")
-    Page<Object[]> findByFundingTitleContainingAndIsPublishedTrueOrderBySupportCount(
-            @Param("title") String title,
-            Pageable pageable
-    );
+    List<Funding> findByFundingTitleContainingAndIsPublishedTrueOrderBySupportCount(@Param("title") String title);
+
+    List<Funding> findByFundingTitleContainingAndIsPublishedTrue(String title);
 }

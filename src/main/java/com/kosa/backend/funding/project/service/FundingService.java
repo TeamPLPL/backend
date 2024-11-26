@@ -262,7 +262,7 @@ public class FundingService {
 //    }
 
     // mainCategoryId별 FundingDTO 리스트 반환 메소드
-    public Page<FundingDTO> getFundingDTOPageByMainCategoryId(int mainCategoryId, Pageable pageable) {
+    public List<FundingDTO> getFundingDTOPageByMainCategoryId(int mainCategoryId) {
         // 1. MainCategory에 해당하는 SubCategory ID 리스트 가져오기
         List<SubCategory> subCategoryList = subCategoryRepository.findAllByMainCategory_Id(mainCategoryId);
         List<Integer> subCategoryIdList = subCategoryList.stream()
@@ -270,11 +270,12 @@ public class FundingService {
                 .toList();
 
         // 2. SubCategory ID 리스트로 Funding 엔티티 페이징 조회
-        Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-        Page<Funding> fundingPage = fundingRepository.findAllBySubCategory_IdIn(subCategoryIdList, pageableWithoutSort);
+//        Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+//        Page<Funding> fundingPage = fundingRepository.findAllBySubCategory_IdIn(subCategoryIdList, pageableWithoutSort);
+        List<Funding> fundingPage = fundingRepository.findAllBySubCategory_IdIn(subCategoryIdList);
 
         // 3. Funding 엔티티를 FundingDTO로 변환 및 supportCnt 설정
-        List<FundingDTO> fundingDTOs = fundingPage.getContent().stream()
+        List<FundingDTO> fundingDTOs = fundingPage.stream()
                 .map(this::convertToFundingDTO)
                 .peek(dto -> dto.setSupportCnt(getFundingSupportUserCounts(dto.getId())))
                 .collect(Collectors.toList());
@@ -283,19 +284,19 @@ public class FundingService {
         fundingDTOs.sort((a, b) -> Integer.compare(b.getSupportCnt(), a.getSupportCnt()));
 
         // 5. 정렬된 리스트를 Page로 변환
-        return new PageImpl<>(fundingDTOs, pageable, fundingPage.getTotalElements());
+        return fundingDTOs;
     }
 
     // subCategoryId별 FundingDTO 리스트 반환 메소드
-    public Page<FundingDTO> getFundingDTOPageBySubCategoryId(int subCategoryId, Pageable pageable) {
+    public List<FundingDTO> getFundingDTOPageBySubCategoryId(int subCategoryId) {
         // 1. 정렬 없는 Pageable 생성 (supportCnt 정렬은 메모리에서 처리)
-        Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+//        Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
 
         // 2. SubCategory ID로 Funding 엔티티 페이징 조회
-        Page<Funding> fundingPage = fundingRepository.findAllBySubCategory_Id(subCategoryId, pageableWithoutSort);
+        List<Funding> fundingPage = fundingRepository.findAllBySubCategory_Id(subCategoryId);
 
         // 3. Funding 엔티티를 FundingDTO로 변환 및 supportCnt 설정
-        List<FundingDTO> fundingDTOs = fundingPage.getContent().stream()
+        List<FundingDTO> fundingDTOs = fundingPage.stream()
                 .map(this::convertToFundingDTO)
                 .peek(dto -> dto.setSupportCnt(getFundingSupportUserCounts(dto.getId())))
                 .collect(Collectors.toList());
@@ -304,21 +305,29 @@ public class FundingService {
         fundingDTOs.sort((a, b) -> Integer.compare(b.getSupportCnt(), a.getSupportCnt()));
 
         // 5. 정렬된 리스트를 Page로 변환
-        return new PageImpl<>(fundingDTOs, pageable, fundingPage.getTotalElements());
+        return fundingDTOs;
     }
 
     // title String값을 포함한 FundingTitle값을 가지고 있는 펀딩 프로젝트 반환 메소드
-    public Page<FundingDTO> searchByTitle(String title, Pageable pageable) {
-        Page<Object[]> resultPage = fundingRepository.findByFundingTitleContainingAndIsPublishedTrueOrderBySupportCount(title, pageable);
+    public List<FundingDTO> searchByTitle(String title) {
+//        List<Funding> resultFunding = fundingRepository.findByFundingTitleContainingAndIsPublishedTrueOrderBySupportCount(title);
+        List<Funding> resultFunding = fundingRepository.findByFundingTitleContainingAndIsPublishedTrue(title);
+        List<FundingDTO> fDTOList = new ArrayList<>();
+        for(Funding f: resultFunding) {
+//            System.out.println("펀딩제목: "+f.getFundingTitle());
+            fDTOList.add(convertToFundingDTO(f));
+        }
+        return fDTOList;
 
-        return resultPage.map(objects -> {
-            Funding funding = (Funding) objects[0];
-            Long supportCount = (Long) objects[1];
 
-            FundingDTO dto = convertToFundingDTO(funding);
-            dto.setSupportCnt(supportCount.intValue());
-            return dto;
-        });
+//        return resultPage.map(objects -> {
+//            Funding funding = (Funding) objects[0];
+//            Long supportCount = (Long) objects[1];
+//
+//            FundingDTO dto = convertToFundingDTO(funding);
+//            dto.setSupportCnt(supportCount.intValue());
+//            return dto;
+//        });
     }
 
     public Page<FundingDTO> getFundingsOrderBySupporterCount(Pageable pageable) {
@@ -348,9 +357,15 @@ public class FundingService {
 //    }
 
     // 펀딩ID별 공지사항 페이지네이션 리스트 반환
-    public Page<FundingNoticeDTO> getFundingNoticeDTOList(int fundingId, Pageable pageable) {
-        Page<FundingNotice> noticePage = fundingNoticeRepository.findByFundingIdOrderByUpdatedAtDesc(fundingId, pageable);
-        return noticePage.map(this::convertToFundingNoticeDTO);
+//    public Page<FundingNoticeDTO> getFundingNoticeDTOList(int fundingId, Pageable pageable) {
+//        Page<FundingNotice> noticePage = fundingNoticeRepository.findByFundingIdOrderByUpdatedAtDesc(fundingId, pageable);
+//        return noticePage.map(this::convertToFundingNoticeDTO);
+//    }
+    public List<FundingNoticeDTO> getFundingNoticeDTOList(int fundingId) {
+        List<FundingNotice> noticeList = fundingNoticeRepository.findByFundingIdOrderByUpdatedAtDesc(fundingId);
+        return noticeList.stream()
+                .map(this::convertToFundingNoticeDTO)
+                .collect(Collectors.toList());
     }
 
     private FundingNoticeDTO convertToFundingNoticeDTO(FundingNotice notice) {

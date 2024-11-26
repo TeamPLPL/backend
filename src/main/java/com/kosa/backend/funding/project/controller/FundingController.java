@@ -59,10 +59,10 @@ public class FundingController {
     }
 
     @GetMapping("/fundinglist/main/{id}")
-    public ResponseEntity<Page<FundingDTO>> getFundingListByMainId(
-            @PathVariable(name = "id") Integer mainCategoryId,
-            @PageableDefault(size = Const.DEFAULT_PAGE_SIZE) Pageable pageable) {
-        Page<FundingDTO> fundingDTOPage = fundingService.getFundingDTOPageByMainCategoryId(mainCategoryId, pageable);
+    public ResponseEntity<List<FundingDTO>> getFundingListByMainId(
+            @PathVariable(name = "id") Integer mainCategoryId
+) {
+            List<FundingDTO> fundingDTOPage = fundingService.getFundingDTOPageByMainCategoryId(mainCategoryId);
         if (fundingDTOPage.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -70,10 +70,9 @@ public class FundingController {
     }
 
     @GetMapping("/fundinglist/sub/{id}")
-    public ResponseEntity<Page<FundingDTO>> getFundingListBySubId(
-            @PathVariable(name = "id") Integer subCategoryId,
-            @PageableDefault(size = Const.DEFAULT_PAGE_SIZE) Pageable pageable) {
-        Page<FundingDTO> fundingDTOPage = fundingService.getFundingDTOPageBySubCategoryId(subCategoryId, pageable);
+    public ResponseEntity<List<FundingDTO>> getFundingListBySubId(
+            @PathVariable(name = "id") Integer subCategoryId) {
+        List<FundingDTO> fundingDTOPage = fundingService.getFundingDTOPageBySubCategoryId(subCategoryId);
         if (fundingDTOPage.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -101,12 +100,11 @@ public class FundingController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<PagedModel<FundingDTO>> searchTitle(
-            @RequestParam("title") String title,
-            @PageableDefault(size = Const.DEFAULT_PAGE_SIZE) Pageable pageable) {
+    public ResponseEntity<List<FundingDTO>> searchTitle(
+            @RequestParam("title") String title) {
 
-        Page<FundingDTO> searchResults = fundingService.searchByTitle(title, pageable);
-        return ResponseEntity.ok(new PagedModel<>(searchResults));
+        List<FundingDTO> searchResults = fundingService.searchByTitle(title);
+        return ResponseEntity.ok(searchResults);
     }
 
     @GetMapping("/fundings")
@@ -133,16 +131,16 @@ public class FundingController {
 //    }
 
     @GetMapping("/{id}/notice")
-    public ResponseEntity<Page<FundingNoticeDTO>> getFundingNoticeDTOList(
-            @PathVariable(name="id") Integer fundingId,
-            @PageableDefault(size = 5, page = 0) Pageable pageable
+    public ResponseEntity<List<FundingNoticeDTO>> getFundingNoticeDTOList(
+            @PathVariable(name="id") Integer fundingId
+//            @PageableDefault(size = 5, page = 0) Pageable pageable
     ) {
         Funding funding = fundingService.getFundingById(fundingId);
         if(funding == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        Page<FundingNoticeDTO> fundingNoticeDTO = fundingService.getFundingNoticeDTOList(fundingId, pageable);
+        List<FundingNoticeDTO> fundingNoticeDTO = fundingService.getFundingNoticeDTOList(fundingId);
         if (fundingNoticeDTO.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -230,5 +228,3 @@ public class FundingController {
         return ResponseEntity.ok().build();
     }
 }
-
-
