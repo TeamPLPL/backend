@@ -1,6 +1,7 @@
 package com.kosa.backend.funding.support.controller;
 
 import com.kosa.backend.common.entity.Const;
+import com.kosa.backend.funding.support.dto.WishlistDTO;
 import com.kosa.backend.funding.support.service.WishlistService;
 import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.entity.User;
@@ -26,11 +27,11 @@ public class WishlistController {
 
     // 찜리스트 조회
     @GetMapping("/list")
-    public ResponseEntity<List<Integer>> getWishlists(@AuthenticationPrincipal CustomUserDetails cud) {
+    public ResponseEntity<List<WishlistDTO>> getWishlists(@AuthenticationPrincipal CustomUserDetails cud) {
         User user = CommonUtils.getCurrentUser(cud, userService);
         if(user == null) { return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();}
-        List<Integer> wishlists = wishlistService.getWishlistsByUser(user.getId());
-        return ResponseEntity.ok(wishlists);
+        List<WishlistDTO> allWishlists = wishlistService.getWishlistsByUser(user.getId());
+        return ResponseEntity.ok(allWishlists);
     }
 
     // 찜리스트 업데이트
@@ -47,8 +48,12 @@ public class WishlistController {
     public ResponseEntity<Void> addToWishlist(@AuthenticationPrincipal CustomUserDetails cud, @PathVariable(name = "id") Integer fundingId) {
         User user = CommonUtils.getCurrentUser(cud, userService);
         if(user == null) { return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); }
-        wishlistService.addToWishlist(user, fundingId);
-        return ResponseEntity.ok().build();
+        try {
+            wishlistService.addToWishlist(user, fundingId);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
     // fundingId로 찜 삭제
@@ -71,18 +76,18 @@ public class WishlistController {
 
     // 페이징된 찜 리스트 조회
     @GetMapping("/list/paged")
-    public ResponseEntity<Page<Integer>> getPagedWishlists(
+    public ResponseEntity<Page<WishlistDTO>> getPagedWishlists(
             @AuthenticationPrincipal CustomUserDetails cud,
             @PageableDefault(size = Const.DEFAULT_PAGE_SIZE) Pageable pageable) {
         User user = CommonUtils.getCurrentUser(cud, userService);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Page<Integer> wishlists = wishlistService.getPagedWishlistsByUser(user.getId(), pageable);
-        if (wishlists.isEmpty()) {
+        Page<WishlistDTO> pagedWishlists = wishlistService.getPagedWishlistsByUser(user.getId(), pageable);
+        if (pagedWishlists.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(wishlists);
+        return ResponseEntity.ok(pagedWishlists);
     }
 
 }

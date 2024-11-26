@@ -24,7 +24,7 @@ public class S3CustomService {
     private final FilesRepository filesRepository;
 
 
-    @Value("${AWS_S3_BUCKET}")
+    @Value("${aws.s3.bucket}")
     private String bucketName;
 
     // 서명된 URL 생성 메소드
@@ -59,14 +59,15 @@ public class S3CustomService {
 
     // 펀딩ID별 디테일 이미지 조회 메소드
     public FileDTO getDetailByFundingId(int fundingId) {
-        Optional<Files> fileOptional = filesRepository.findByUserIdAndImgType(fundingId, ImgType.DETAIL_IMAGE);
+        Optional<Files> fileOptional = filesRepository.findByFundingIdAndImgType(fundingId, ImgType.DETAIL_IMAGE);
 
-        // Optional이 비어있으면 null 반환
-        if (fileOptional.isEmpty()) {
-            return null;
+        // 값이 없으면 null 반환
+        Files file = fileOptional.orElse(null);
+
+        if (file == null) {
+            return null; // null 반환
         }
 
-        Files file = fileOptional.get();
         String signedUrl = generateSignedUrl(file.getPath() + file.getSavedNm());
 
         return FileDTO.builder()

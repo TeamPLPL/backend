@@ -2,6 +2,7 @@ package com.kosa.backend.payment.controller;
 
 import com.kosa.backend.payment.dto.PaymentDTO;
 import com.kosa.backend.payment.dto.PaymentDetailDTO;
+import com.kosa.backend.payment.dto.RewardPurchaseRequest;
 import com.kosa.backend.payment.service.PaymentService;
 import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.entity.User;
@@ -16,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,26 +71,48 @@ public class PaymentController {
 
     // 구매 검증
     @PostMapping("/validate-purchase")
-    public ResponseEntity<Map<String, Object>> validatePurchase(@RequestBody Map<String, Object> purchaseRequest) {
-        int rewardId = (int) purchaseRequest.get("rewardId");
-        int fundingId = (int) purchaseRequest.get("fundingId");
-        int purchaseQuantity = (int) purchaseRequest.get("purchaseQuantity");
+    public ResponseEntity<Map<String, Object>> validatePurchase(@RequestBody List<RewardPurchaseRequest> purchaseRequests) {
+        System.out.println("받은 purchaseRequests 데이터: " + purchaseRequests);
+        Map<String, Object> response = new HashMap<>();
+//        List<Map<String, Object>> details = new ArrayList<>();
+        boolean allValid = true; // 모든 리워드 검증이 통과되었는지 여부
 
-        try {
-            paymentService.validatePurchase(rewardId, fundingId, purchaseQuantity);
+        for (RewardPurchaseRequest purchaseRequest : purchaseRequests) {
+            System.out.println("개별 요청 데이터: " + purchaseRequest);
+            int rewardId = purchaseRequest.getRewardId();
+            int fundingId = purchaseRequest.getFundingId();
+            int purchaseQuantity = purchaseRequest.getPurchaseQuantity();
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("valid", true);
-            response.put("remainingQuantity", paymentService.getRemainingQuantity(rewardId, fundingId));
-            return ResponseEntity.ok(response);
+            try {
+                // 리워드 남은 수량 계산
+                int remainingQuantity = paymentService.getRemainingQuantity(rewardId, fundingId);
 
-        } catch (IllegalStateException e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("valid", false);
-            response.put("message", e.getMessage());
-            response.put("remainingQuantity", paymentService.getRemainingQuantity(rewardId, fundingId));
-            return ResponseEntity.badRequest().body(response);
+                if (remainingQuantity < purchaseQuantity) {
+                    allValid = false;
+                    response.put("valid", false);
+                    response.put("rewardId", rewardId);
+                    response.put("remainingQuantity", remainingQuantity);
+                    response.put("message", String.format("리워드 %d의 남은 수량이 부족합니다. (남은 수량: %d)", rewardId, remainingQuantity));
+
+                    // 검증 실패 시 즉시 반환
+                    return ResponseEntity.badRequest().body(response);
+                }
+            } catch (IllegalStateException e) {
+                allValid = false;
+                response.put("valid", false);
+                response.put("rewardId", rewardId);
+                response.put("message", e.getMessage());
+                response.put("remainingQuantity", paymentService.getRemainingQuantity(rewardId, fundingId));
+
+                // 검증 실패 시 즉시 반환
+                return ResponseEntity.badRequest().body(response);
+            }
         }
+
+        response.put("valid", allValid);
+        response.put("message", allValid ? "모든 리워드 구매가 가능합니다." : "리워드 구매에 문제가 있습니다.");
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{paymentId}/cancel")

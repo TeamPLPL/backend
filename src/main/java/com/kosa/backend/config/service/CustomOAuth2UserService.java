@@ -4,6 +4,7 @@ import com.kosa.backend.config.dto.GoogleResponse;
 import com.kosa.backend.config.dto.NaverResponse;
 import com.kosa.backend.config.dto.OAuth2Response;
 import com.kosa.backend.user.dto.CustomOAuth2User;
+import com.kosa.backend.user.dto.CustomUserDetails;
 import com.kosa.backend.user.dto.UserDTO;
 import com.kosa.backend.user.dto.UserOAuthDTO;
 import com.kosa.backend.user.entity.Maker;
@@ -32,36 +33,31 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
-        // DefaultOAuth2UserService 생성자를 super를 이용해서 값을 받음
+        // DefaultOAuth2UserService를 통해 사용자 정보를 가져옴
         OAuth2User oAuth2User = super.loadUser(userRequest);
-        System.out.println(oAuth2User);
 
-        // registrationId는 goole, naver, kakao 인지 확인
+        // registrationId는 google, naver, kakao 등을 구분
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         OAuth2Response oAuth2Response = null;
+
         if (registrationId.equals("naver")) {
             oAuth2Response = new NaverResponse(oAuth2User.getAttributes());
-        }
-        else if (registrationId.equals("google")) {
+        } else if (registrationId.equals("google")) {
             oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
-        }
-//        else if(registrationId.equals("kakao")){
-//            oAuth2Response = new KakaoResponse(oAuth2User.getAttributes());
-//        }
-        else {
-            return null;
+        } else {
+            throw new OAuth2AuthenticationException("Unsupported registrationId: " + registrationId);
         }
 
-        //리소스 서버에서 발급 받은 정보로 사용자를 특정할 아이디값을 만듬 -> User Entity에서 provider가 아이디값
-        //ex) 네이버 : naver_xxxx..., 구글 : google_xxxx...
-        String provider = oAuth2Response.getProvider()+"_"+oAuth2Response.getProviderId();
+        // 리소스 서버에서 받은 정보를 기반으로 고유 provider ID 생성
+        String provider = oAuth2Response.getProvider() + "_" + oAuth2Response.getProviderId();
 
+        // 사용자 데이터베이스에서 provider로 사용자 검색
         Optional<User> optionalUser = userRepository.findByProvider(provider);
 
-        // provider가 존재하지 않을 경우 소셜 회원 가입
-        if(!optionalUser.isPresent()){
-            // user 생성
-            int id = userRepository.save(User.builder()
+        User user;
+        if (!optionalUser.isPresent()) {
+            // 새 사용자 생성
+            user = userRepository.save(User.builder()
                     .email(oAuth2Response.getEmail())
                     .userName(oAuth2Response.getName())
                     .authority(Authority.ROLE_USER)
@@ -69,31 +65,22 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .isQuit(false)
                     .complaintCount(0)
                     .provider(provider)
-                    .build()).getId();
-
-            // maker 생성
-            makerRepository.save(Maker.builder()
-                    .user(userRepository.findById(id).get())
-                    .userContent("자유롭게 자기소개를 입력하세요.")
                     .build());
 
-            UserOAuthDTO userOAuthDTO = new UserOAuthDTO();
-            userOAuthDTO.setProvider(provider);
-            userOAuthDTO.setUserName(oAuth2Response.getName());
-            userOAuthDTO.setAuthority(Authority.ROLE_USER);
-
-            return new CustomOAuth2User(userOAuthDTO);
+            // 새 Maker 엔티티 생성
+            makerRepository.save(Maker.builder()
+                    .user(user)
+                    .userContent("자유롭게 자기소개를 입력하세요.")
+                    .build());
         } else {
-            User user = optionalUser.get();
+            // 기존 사용자 정보 업데이트
+            user = optionalUser.get();
             user.setEmail(oAuth2Response.getEmail());
             user.setUserName(oAuth2Response.getName());
-
-            UserOAuthDTO userOAuthDTO = new UserOAuthDTO();
-            userOAuthDTO.setProvider(provider);
-            userOAuthDTO.setUserName(oAuth2Response.getName());
-            userOAuthDTO.setAuthority(Authority.ROLE_USER);
-
-            return new CustomOAuth2User(userOAuthDTO);
         }
+
+        // CustomUserDetails 객체 생성
+        return new CustomUserDetails(user);
     }
 }
+

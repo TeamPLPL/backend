@@ -43,12 +43,12 @@ public class UserSubController {
 
     // 프로필 이미지가져오는 컨트롤러
     @GetMapping("/get/profileimage")
-    public ResponseEntity<?> getThubnail(@AuthenticationPrincipal CustomUserDetails cud) throws IOException {
+    public ResponseEntity<?> getProfileImage(@AuthenticationPrincipal CustomUserDetails cud) throws IOException {
 
         // 인증된 User 체크 메소드 따로 빼기
         String userEmail = cud.getUsername();
 
-        User user = CommonUtils.getCurrentUser(cud, userService);
+//        User user = CommonUtils.getCurrentUser(cud, userService);
 
         User user = CommonUtils.getCurrentUser(cud, userService);
         if(user == null) {

@@ -21,4 +21,6 @@ public class Maker extends Auditable {
 
     @Column(nullable = false)
     private String userContent;
+
+    public void updateUserContent(String newUserContent) { this.userContent = newUserContent; }
 }

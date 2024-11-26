@@ -23,4 +23,10 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Integer> {
 
     @Query("SELECT w.funding.id FROM Wishlist w WHERE w.user.id = :userId")
     Page<Integer> findFundingIdsByUserId(@Param("userId") int userId, Pageable pageable);
+
+    // 특정 유저의 위시리스트 전체 조회
+    List<Wishlist> findByUserId(int userId);
+
+    // 특정 유저의 위시리스트 페이징 조회
+    Page<Wishlist> findByUserId(int userId, Pageable pageable);
 }
