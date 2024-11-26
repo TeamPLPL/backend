@@ -6,6 +6,7 @@ import com.kosa.backend.user.dto.UserDTO;
 import com.kosa.backend.user.dto.responsedto.ResponseUserDTO;
 import com.kosa.backend.user.entity.User;
 import com.kosa.backend.user.service.UserService;
+import com.kosa.backend.util.CommonUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -70,4 +71,13 @@ public class UserApiController {
     public ResponseEntity test() {
         return ResponseEntity.ok().body("Hello World");
     }
+
+//    @GetMapping("/auth/status")
+//    public ResponseEntity<Boolean> checkAuthStatus(@AuthenticationPrincipal CustomUserDetails cud) {
+//        User user = CommonUtils.getCurrentUser(cud, userService);
+//        if (user == null) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
+//        }
+//        return ResponseEntity.ok().body(true);
+//    }
 }
