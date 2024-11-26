@@ -48,6 +48,8 @@ public class UserSubController {
         // 인증된 User 체크 메소드 따로 빼기
         String userEmail = cud.getUsername();
 
+//        User user = CommonUtils.getCurrentUser(cud, userService);
+
         User user = CommonUtils.getCurrentUser(cud, userService);
         if(user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

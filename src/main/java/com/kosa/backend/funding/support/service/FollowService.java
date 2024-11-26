@@ -1,5 +1,7 @@
 package com.kosa.backend.funding.support.service;
 
+import com.kosa.backend.common.dto.FileDTO;
+import com.kosa.backend.common.service.S3CustomService;
 import com.kosa.backend.common.service.S3Service;
 import com.kosa.backend.funding.support.dto.FollowDTO;
 import com.kosa.backend.funding.support.entity.Follow;
@@ -18,7 +20,7 @@ import java.util.stream.Collectors;
 @Service
 public class FollowService {
     private final FollowRepository followRepository;
-    private final S3Service s3Service;
+    private final S3CustomService s3CustomService;
 
     // 유저별 팔로우 전체 조회
     public List<FollowDTO> getFollowsByUser(User user) {
@@ -27,10 +29,10 @@ public class FollowService {
         return follows.stream()
                 .map(f -> {
                     Maker maker = f.getFollowedUser();
-                    String profileImgUrl = null;
+                    FileDTO profileImgUrl = null;
 
                     try {
-                        profileImgUrl = s3Service.getProfileImgByUserId(maker.getUser().getId()).getSignedUrl();
+                        profileImgUrl = s3CustomService.getprofile(maker.getUser().getId());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -40,6 +42,7 @@ public class FollowService {
                             .name(maker.getUser().getUserNick()) // 닉네임
                             .avatar(profileImgUrl) // 프로필 이미지
                             .description(maker.getUserContent()) // 설명
+                            .makerId(maker.getId()) // Maker ID 추가
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -48,8 +51,13 @@ public class FollowService {
     // 팔로우 추가
     @Transactional
     public Follow addFollow(User followingUser, Maker followedUser) {
+        // 자신을 팔로우하는지 확인
+        if (followingUser.getId() == followedUser.getUser().getId()) {
+            throw new IllegalArgumentException("자기 자신을 팔로우할 수 없습니다.");
+        }
+
         if (followRepository.existsByFollowedUserIdAndFollowingUserId(followedUser.getId(), followingUser.getId())) {
-            throw new IllegalStateException("Already following this user.");
+            throw new IllegalStateException("이미 팔로잉하셨습니다.");
         }
 
         // Builder로 Follow 엔터티 생성
@@ -64,9 +72,10 @@ public class FollowService {
     // 팔로우 삭제
     @Transactional
     public void removeFollow(User followingUser, Maker followedUser) {
-        Follow follow = followRepository.findByFollowedUserAndFollowingUser(followedUser, followingUser)
-                .orElseThrow(() -> new IllegalArgumentException("Follow relationship does not exist."));
-        followRepository.delete(follow);
+//        Follow follow = followRepository.findByFollowedUserAndFollowingUser(followedUser, followingUser)
+//                .orElseThrow(() -> new IllegalArgumentException("Follow relationship does not exist."));
+//        followRepository.delete(follow);
+        followRepository.deleteByFollowedUserAndFollowingUser(followedUser, followingUser);
     }
 
     // 최신 Follow 3개 조회
@@ -77,10 +86,10 @@ public class FollowService {
         return follows.stream()
                 .map(f -> {
                     Maker maker = f.getFollowedUser();
-                    String profileImgUrl = null;
+                    FileDTO profileImgUrl = null;
 
                     try {
-                        profileImgUrl = s3Service.getProfileImgByUserId(maker.getUser().getId()).getSignedUrl();
+                        profileImgUrl = s3CustomService.getprofile(maker.getUser().getId());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -90,6 +99,7 @@ public class FollowService {
                             .name(maker.getUser().getUserNick())
                             .avatar(profileImgUrl)
                             .description(maker.getUserContent())
+                            .makerId(maker.getId()) // Maker ID 추가
                             .build();
                 })
                 .collect(Collectors.toList());
