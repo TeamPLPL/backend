@@ -16,8 +16,8 @@ import java.util.List;
 @Repository
 public interface FundingRepository extends JpaRepository<Funding, Integer> {
 
-    List<Funding> findAllByOrderByPublishDateDesc(Pageable pageable);
-
+//    List<Funding> findAllByOrderByPublishDateDesc(Pageable pageable);
+    List<Funding> findAllByIsPublishedTrueOrderByPublishDateDesc(Pageable pageable);
 //    @Query("SELECT f, COUNT(fs.id) AS supportCount " +
 //            "FROM Funding f LEFT JOIN f.fundingSupport fs " +
 //            "WHERE f.fundingStartDate <= :currentDate AND f.fundingEndDate >= :currentDate " +
