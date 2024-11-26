@@ -38,8 +38,7 @@ public class RewardSubApiController {
             , @PathVariable(name = "id") int projectId ) {
 
         int projectIdFromRewardInfo = rewardService.savePolicy(requestRewardInfoDTO, projectId);
-
-
+        
         Map<String, Object> response = new HashMap<>();
         response.put("projectId", projectIdFromRewardInfo);
 
