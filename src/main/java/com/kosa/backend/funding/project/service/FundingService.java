@@ -72,7 +72,8 @@ public class FundingService {
     // 최신순 펀딩 리스트 조회 (8개)
     public ResponseEntity<List<FundingDTO>> getNewFundingList() {
         PageRequest pageRequest = PageRequest.of(0, Const.NEW_FUNDINGLIST_CNT, Sort.by(Sort.Direction.DESC, "publishDate"));
-        List<Funding> newFundingList = fundingRepository.findAllByOrderByPublishDateDesc(pageRequest);
+//        List<Funding> newFundingList = fundingRepository.findAllByOrderByPublishDateDesc(pageRequest);
+        List<Funding> newFundingList = fundingRepository.findAllByIsPublishedTrueOrderByPublishDateDesc(pageRequest);
         return convertToFundingDTOList(newFundingList);
     }
 
