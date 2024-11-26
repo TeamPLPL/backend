@@ -192,6 +192,3 @@ application.yml
 
 # AWS 설정
 aws-credentials.properties
-
-.env
-.env*
