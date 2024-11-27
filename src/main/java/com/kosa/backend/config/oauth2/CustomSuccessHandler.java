@@ -38,7 +38,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String authority = authorities.iterator().next().getAuthority();
 
         // JWT 생성
-        String token = jwtUtil.createJwt(email, authority, 60 * 60 * 60 * 10L);
+        String token = jwtUtil.createJwt(email, authority, 60*60*60*10*10L);
 
         // 쿠키 생성 및 응답에 추가
         response.addCookie(createCookie("Authorization", token));

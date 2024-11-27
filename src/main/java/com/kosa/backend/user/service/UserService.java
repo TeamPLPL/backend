@@ -30,7 +30,6 @@ public class UserService {
     public int save(UserDTO userDTO) {
         int id = userRepository.save(User.builder()
                 .email(userDTO.getEmail())
-                .userName("유저")
                 .password(bCryptPasswordEncoder.encode(userDTO.getPassword()))
                 .authority(Authority.ROLE_USER)
                 .userNick(userDTO.getUserNick())
