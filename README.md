@@ -1,4 +1,5 @@
 # WADIZ 클론 코딩 프로젝트  
+<img src="https://github.com/user-attachments/assets/95e86d4f-8b73-4a2d-8e34-8323f84ff5c6" width="600"/>
 
 ## 📋 프로젝트 개요
 
